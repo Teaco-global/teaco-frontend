@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 
 import teacoLogo from '../assets/teaco.png';
+import { backendBaseUrl } from '../config';
 
 interface LocationState {
   email: string;
@@ -39,7 +40,7 @@ const VerifyEmail: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:3000/teaco/api/v1/auth/verify-account', {
+      const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/auth/verify-account`, {
         email,
         verificationCode: otpCode,
       });
@@ -58,7 +59,7 @@ const VerifyEmail: React.FC = () => {
   const resendOtp = async () => {
     try {
       setLoading(true);
-      await axios.post('http://localhost:3000/teaco/api/v1/auth/resend-verification-code', { email });
+      await axios.post(`${backendBaseUrl}/teaco/api/v1/auth/resend-verification-code`, { email });
       toast.success('OTP has been resent to your email');
     } catch (error: any) {
       toast.error('Failed to resend OTP');

@@ -4,6 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import teacoLogo from '../assets/teaco.png';
+import { backendBaseUrl } from '../config';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:3000/teaco/api/v1/auth/login', {
+      const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/auth/login`, {
         email,
         password,
       });

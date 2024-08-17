@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import teacoLogo from '../assets/teaco.png';
 import { useNavigate } from 'react-router-dom';
+import { backendBaseUrl } from '../config';
 
 const ComingSoon: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number, minutes: number, seconds: number }>({
@@ -22,7 +23,7 @@ const ComingSoon: React.FC = () => {
           throw new Error('Unauthorized: No token found');
         }
 
-        const response = await axios.get('http://localhost:3000/teaco/api/v1/auth/home', {
+        const response = await axios.get(`${backendBaseUrl}/teaco/api/v1/auth/home`, {
           headers: {
             Authorization: `${token}`,
           },
