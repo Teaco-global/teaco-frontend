@@ -26,6 +26,12 @@ const SignUpForm: React.FC = () => {
         return;
     }
 
+    if (password.length < 8){
+      toast.error('Passwords must be atleast 8 charcters long');
+      setError('Passwords must be atleast 8 charcters long');
+      return;
+    }
+
     try {
       const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/auth/sign-up`, {
         name,
