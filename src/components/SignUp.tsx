@@ -8,6 +8,7 @@ import { backendBaseUrl } from '../config';
 
 const SignUpForm: React.FC = () => {
   const [name, setName] = useState('');
+  const [workspaceName, setWorkspaceName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,6 +36,7 @@ const SignUpForm: React.FC = () => {
     try {
       const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/auth/sign-up`, {
         name,
+        workspaceName,
         email,
         password,
       });
@@ -71,6 +73,17 @@ const SignUpForm: React.FC = () => {
               onChange={(e) => setName(e.target.value)}
               className="w-full p-2 border rounded"
               placeholder="Your full name"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1">Workspace Name</label>
+            <input
+              type="text"
+              value={workspaceName}
+              onChange={(e) => setWorkspaceName(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder="Your workspace name"
               required
             />
           </div>
