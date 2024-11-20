@@ -2,7 +2,7 @@ import React from "react";
 import TopBar from "../components/TopBar";
 import Sidebar from "../components/SideBar";
 
-const Home: React.FC = () => {
+const Mails: React.FC = () => {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const workspaceData = JSON.parse(localStorage.getItem("workspaceData") || "{}");
 
@@ -19,7 +19,7 @@ const Home: React.FC = () => {
             Welcome to {workspaceName}
           </h1>
           <p className="text-lg text-gray-700 text-center">
-            This is the main content area of the application.
+            This is the mails page.
           </p>
         </main>
       </div>
@@ -27,4 +27,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default Mails;

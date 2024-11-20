@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   HomeIcon,
   ChatBubbleLeftEllipsisIcon,
@@ -12,11 +12,14 @@ import {
   ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
-interface SidebarProps {
-  onLogout: () => void;
-}
+const Sidebar: React.FC = () => {
+  const navigate = useNavigate();
 
-const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    navigate("/login");
+  };
+
   const menuItems = [
     { name: "Home", icon: <HomeIcon className="h-6 w-6" /> },
     { name: "Chats", icon: <ChatBubbleLeftEllipsisIcon className="h-6 w-6" /> },
@@ -29,8 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
   ];
 
   return (
-    <aside className="w-64 bg-gray-100 border-r flex flex-col justify-content items-start p-4">
-      {/* Sidebar Menu */}
+    <aside className="w-64 bg-gray-100 border-r flex flex-col justify-center items-start p-4">
       <ul className="space-y-4 text-lg w-full">
         {menuItems.map((item) => (
           <li key={item.name} className="w-full">
@@ -38,7 +40,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
               to={`/${item.name.toLowerCase()}`}
               className={({ isActive }) =>
                 `flex items-center gap-4 text-left py-3 pl-4 rounded-md ${
-                  isActive ? "bg-[#e7e5ff] text-[#0D00A8]" : "hover:text-[#0D00A8]"
+                  isActive
+                    ? "border-l-4 border-[#0D00A8] bg-[#e7e5ff] text-[#0D00A8]"
+                    : "hover:text-[#0D00A8]"
                 }`
               }
             >
@@ -48,12 +52,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
           </li>
         ))}
       </ul>
-
-      {/* Logout Button */}
       <div className="mt-auto w-full">
         <hr className="my-4" />
         <button
-          onClick={onLogout}
+          onClick={handleLogout}
           className="flex items-center gap-4 text-red-600 hover:text-red-800 text-left py-3 pl-4 w-full text-lg"
         >
           <ArrowRightOnRectangleIcon className="h-6 w-6" />

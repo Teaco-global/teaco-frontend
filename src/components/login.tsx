@@ -6,27 +6,82 @@ import { useNavigate } from 'react-router-dom';
 import teacoLogo from '../assets/teaco.png';
 import { backendBaseUrl } from '../config';
 
+interface User {
+  id: number;
+  email: string;
+  name: string;
+  iat: number;
+  exp: number;
+}
+
+interface Workspace {
+  id: number;
+  secret: string;
+  label: string;
+  ownerId: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: null | string;
+}
+
+interface AuthMeResponse {
+  data: {
+    user: User;
+    workspace: Workspace;
+  };
+}
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const fetchAuthMe = async (token: string): Promise<AuthMeResponse> => {
+    try {
+      const response = await axios.get(`${backendBaseUrl}/teaco/api/v1/auth/me`, {
+        headers: {
+          Authorization: `${token}`
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      throw new Error('Failed to fetch user data');
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
 
     try {
-      const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/auth/login`, {
+      const loginResponse = await axios.post(`${backendBaseUrl}/teaco/api/v1/auth/login`, {
         email,
         password,
       });
 
-      if (response.status === 200) {
-        localStorage.setItem('accessToken', response.data.token.access);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token.access}`;
-        toast.success('Login successful!');
-        navigate('/home');
+      if (loginResponse.status === 200) {
+        const accessToken = loginResponse.data.token.access;
+        localStorage.setItem('accessToken', accessToken);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        try {
+          const authMeData = await fetchAuthMe(accessToken);
+          localStorage.setItem('userData', JSON.stringify(authMeData.data.user));
+          localStorage.setItem('workspaceData', JSON.stringify(authMeData.data.workspace));
+
+          toast.success('Login successful!');
+          navigate('/home', { 
+            state: { 
+              userName: authMeData.data.user.name,
+              workspaceName: authMeData.data.workspace.label
+            }
+          });
+        } catch (authMeError) {
+          toast.error('Failed to fetch user data');
+          setError('Failed to fetch user data');
+          localStorage.removeItem('accessToken');
+          delete axios.defaults.headers.common['Authorization'];
+        }
       }
     } catch (error: any) {
       toast.error(error?.response?.data?.error?.message || 'An error occurred');
