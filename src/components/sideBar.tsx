@@ -32,7 +32,7 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-gray-100 border-r flex flex-col justify-center items-start p-4">
+    <aside className="w-64 bg-white border-r flex flex-col justify-center items-start p-4">
       <ul className="space-y-4 text-lg w-full">
         {menuItems.map((item) => (
           <li key={item.name} className="w-full">

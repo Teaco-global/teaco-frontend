@@ -41,12 +41,45 @@ const Login: React.FC = () => {
     try {
       const response = await axios.get(`${backendBaseUrl}/teaco/api/v1/auth/me`, {
         headers: {
-          Authorization: `${token}`
-        }
+          Authorization: `${token}`,
+        },
       });
       return response.data;
     } catch (error: any) {
       throw new Error('Failed to fetch user data');
+    }
+  };
+
+  const fetchActiveWorkspace = async (token: string): Promise<any> => {
+    try {
+      const response = await axios.get(`${backendBaseUrl}/teaco/api/v1/user-workspace/active-workspaces`, {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      if (response.data?.data?.length === 0) {
+        throw new Error('No active workspaces found');
+      }
+      return response.data.data.workspace;
+    } catch (error: any) {
+      throw new Error('Failed to fetch active workspace');
+    }
+  };
+
+  const loginWorkspace = async (workspaceId: number, token: string): Promise<string> => {
+    try {
+      console.log('hello');
+      const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/user-workspace/workspace-login`, {
+        workspaceId,
+      }, {
+        headers: {
+          Authorization: `${token}`,
+        }
+      });
+      console.log(response);
+      return response.data.data.token;
+    } catch (error: any) {
+      throw new Error('Failed to log into workspace');
     }
   };
 
@@ -63,22 +96,26 @@ const Login: React.FC = () => {
       if (loginResponse.status === 200) {
         const accessToken = loginResponse.data.token.access;
         localStorage.setItem('accessToken', accessToken);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        axios.defaults.headers.common['Authorization'] = `${accessToken}`;
         try {
           const authMeData = await fetchAuthMe(accessToken);
           localStorage.setItem('userData', JSON.stringify(authMeData.data.user));
           localStorage.setItem('workspaceData', JSON.stringify(authMeData.data.workspace));
+          const activeWorkspace = await fetchActiveWorkspace(accessToken);
+          const workspaceSecret = await loginWorkspace(activeWorkspace.id, accessToken);
+          localStorage.setItem('x-workspace-secret-id', workspaceSecret);
 
           toast.success('Login successful!');
-          navigate('/home', { 
-            state: { 
+          navigate('/home', {
+            state: {
               userName: authMeData.data.user.name,
-              workspaceName: authMeData.data.workspace.label
-            }
+              workspaceName: authMeData.data.workspace.label,
+            },
           });
-        } catch (authMeError) {
-          toast.error('Failed to fetch user data');
-          setError('Failed to fetch user data');
+        } catch (workspaceError) {
+          console.log(error);
+          toast.error('Failed to complete workspace setup');
+          setError('Failed to complete workspace setup');
           localStorage.removeItem('accessToken');
           delete axios.defaults.headers.common['Authorization'];
         }
