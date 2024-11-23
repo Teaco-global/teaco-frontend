@@ -19,6 +19,7 @@ const Projects: React.FC = () => {
   const userName = userData.name || "";
   const workspaceName = workspaceData.label || "";
   const accessToken = localStorage.getItem("accessToken");
+  const workspaceSecret = localStorage.getItem("x-workspace-secret-id")
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -26,6 +27,7 @@ const Projects: React.FC = () => {
         const response = await axios.get(`${backendBaseUrl}/teaco/api/v1/project`, {
           headers: {
             Authorization: `${accessToken}`,
+            'x-workspace-secret-id': `${workspaceSecret}`,
           },
         });
         setProjects(response.data.data || []);
@@ -55,6 +57,7 @@ const Projects: React.FC = () => {
       const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/project/create`, data, {
         headers: {
           Authorization: `${accessToken}`,
+          'x-workspace-secret-id': `${workspaceSecret}`,
         },
       });
       toast.success('Project created successfully')
@@ -71,6 +74,7 @@ const Projects: React.FC = () => {
       const deletProjectResponse = await axios.delete(`${backendBaseUrl}/teaco/api/v1/project/${id}`, {
         headers: {
           Authorization: `${accessToken}`,
+          'x-workspace-secret-id': `${workspaceSecret}`,
         },
       });
       toast.success(deletProjectResponse.data.message);
@@ -105,12 +109,18 @@ const Projects: React.FC = () => {
           &#x22EE;
         </button>
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg">
+          <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg">
             <button
               onClick={() => handleDeleteProject(projectId)}
               className="block w-full px-4 py-2 text-left text-red-500 hover:bg-gray-100"
             >
               Delete
+            </button>
+            <button
+              onClick={() => {}}
+              className="block w-full px-4 py-2 text-left text-black hover:bg-gray-100"
+            >
+              Mark completed
             </button>
           </div>
         )}
@@ -185,7 +195,11 @@ const Projects: React.FC = () => {
                       index % 2 === 0 ? "bg-white" : "bg-white"
                     }`}
                   >
-                    <td className="py-3 px-4 text-[#0D00A8]">{project.name}</td>
+                    <td className="py-3 px-4 text-[#0D00A8]">
+                    <a href={`/projects/${project.id}/boards`} className="hover:underline">
+                      {project.name}
+                    </a>
+                    </td>
                     <td className="py-3 px-4">{project.description || "N/A"}</td>
                     <td className="py-3 px-4">{project.status}</td>
                     <td className="py-3 px-4">{formatDate(project.createdAt)}</td>
