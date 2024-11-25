@@ -113,7 +113,7 @@ const Login: React.FC = () => {
             },
           });
         } catch (workspaceError) {
-          console.log(error);
+          console.log('error');
           toast.error('Failed to complete workspace setup');
           setError('Failed to complete workspace setup');
           localStorage.removeItem('accessToken');

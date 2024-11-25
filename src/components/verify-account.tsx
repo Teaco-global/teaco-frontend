@@ -31,6 +31,22 @@ const VerifyEmail: React.FC = () => {
     }
   };
 
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = event.clipboardData.getData('text');
+    if (pastedText.length === otp.length && !isNaN(Number(pastedText))) {
+      const pastedOtp = pastedText.split('');
+      setOtp(pastedOtp);
+
+      // Automatically focus the last field
+      const inputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="text"]'));
+      if (inputs[pastedOtp.length - 1]) {
+        inputs[pastedOtp.length - 1].focus();
+      }
+    } else {
+      toast.error('Please paste a valid 5-digit OTP');
+    }
+  };
+
   const handleSubmit = async () => {
     const otpCode = otp.join('');
     if (otpCode.length !== 5) {
@@ -82,6 +98,7 @@ const VerifyEmail: React.FC = () => {
               maxLength={1}
               value={digit}
               onChange={(e) => handleOtpChange(e.target, index)}
+              onPaste={index === 0 ? handlePaste : undefined} // Only handle paste on the first input
               className="w-12 h-12 text-center border rounded-lg text-2xl"
             />
           ))}

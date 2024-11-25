@@ -34,7 +34,7 @@ const Boards: React.FC = () => {
     const fetchColumns = async () => {
       try {
         const response = await axios.get(
-          `${backendBaseUrl}/teaco/api/v1/columns/${projectId}`,
+          `${backendBaseUrl}/teaco/api/v1/project/${projectId}/columns`,
           {
             headers: {
               Authorization: `${accessToken}`,

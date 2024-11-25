@@ -30,6 +30,8 @@ const App: React.FC = () => {
         <Route path="/chats" element={<PrivateRoute><Chats /></PrivateRoute>} />
         <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
         <Route path="/projects/:projectId/boards" element={<PrivateRoute><Boards /></PrivateRoute>} />
+        <Route path="/projects/:projectId/backlogs" element={<PrivateRoute><Boards /></PrivateRoute>} />
+        <Route path="/projects/:projectId/timeline" element={<PrivateRoute><Boards /></PrivateRoute>} />
         <Route path="/wikis" element={<PrivateRoute><Wikis /></PrivateRoute>} />
         <Route path="/mails" element={<PrivateRoute><Mails /></PrivateRoute>} />
         <Route path="/spaces" element={<PrivateRoute><Spaces /></PrivateRoute>} />

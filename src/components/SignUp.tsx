@@ -3,7 +3,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-import teacoLogo from '../assets/teaco.png'
+import teacoLogo from '../assets/teaco.png';
 import { backendBaseUrl } from '../config';
 
 const SignUpForm: React.FC = () => {
@@ -12,6 +12,7 @@ const SignUpForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
@@ -22,18 +23,19 @@ const SignUpForm: React.FC = () => {
     setSuccess('');
 
     if (password !== confirmPassword) {
-        toast.error('Passwords do not match');
-        setError('Passwords do not match');
-        return;
+      toast.error('Passwords do not match');
+      setError('Passwords do not match');
+      return;
     }
 
-    if (password.length < 8){
-      toast.error('Passwords must be atleast 8 charcters long');
-      setError('Passwords must be atleast 8 charcters long');
+    if (password.length < 8) {
+      toast.error('Passwords must be at least 8 characters long');
+      setError('Passwords must be at least 8 characters long');
       return;
     }
 
     try {
+      setLoading(true);
       const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/auth/sign-up`, {
         name,
         workspaceName,
@@ -47,8 +49,10 @@ const SignUpForm: React.FC = () => {
         navigate('/verify-account', { state: { email } });
       }
     } catch (error: any) {
-        toast.error(error?.response?.data?.error?.message || 'An error occurred');
-        setError(error?.response?.data?.error?.message|| 'An error occurred');
+      toast.error(error?.response?.data?.error?.message || 'An error occurred');
+      setError(error?.response?.data?.error?.message || 'An error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,8 +124,14 @@ const SignUpForm: React.FC = () => {
               required
             />
           </div>
-          <button type="submit" className="w-1/4 py-3 bg-primary text-white font-bold rounded-lg mx-auto block">
-            Sign Up
+          <button
+            type="submit"
+            className={`w-1/4 py-3 bg-primary text-white font-bold rounded-lg mx-auto block ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            disabled={loading}
+          >
+            {loading ? 'Submitting...' : 'Sign Up'}
           </button>
         </form>
       </div>
