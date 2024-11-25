@@ -11,7 +11,8 @@ import Mails from './pages/mails';
 import Spaces from './pages/spaces';
 import Invite from './pages/invite';
 import Settings from './pages/settings';
-import Boards from './pages/boards';
+import Boards from './pages/Boards';
+import Backlogs from './pages/Backlogs';
 
 const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const isAuthenticated = !!localStorage.getItem('accessToken');
@@ -30,7 +31,7 @@ const App: React.FC = () => {
         <Route path="/chats" element={<PrivateRoute><Chats /></PrivateRoute>} />
         <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
         <Route path="/projects/:projectId/boards" element={<PrivateRoute><Boards /></PrivateRoute>} />
-        <Route path="/projects/:projectId/backlogs" element={<PrivateRoute><Boards /></PrivateRoute>} />
+        <Route path="/projects/:projectId/backlogs" element={<PrivateRoute><Backlogs /></PrivateRoute>} />
         <Route path="/projects/:projectId/timeline" element={<PrivateRoute><Boards /></PrivateRoute>} />
         <Route path="/wikis" element={<PrivateRoute><Wikis /></PrivateRoute>} />
         <Route path="/mails" element={<PrivateRoute><Mails /></PrivateRoute>} />
