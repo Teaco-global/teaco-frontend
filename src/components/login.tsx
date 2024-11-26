@@ -68,7 +68,6 @@ const Login: React.FC = () => {
 
   const loginWorkspace = async (workspaceId: number, token: string): Promise<string> => {
     try {
-      console.log('hello');
       const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/user-workspace/workspace-login`, {
         workspaceId,
       }, {
@@ -76,7 +75,6 @@ const Login: React.FC = () => {
           Authorization: `${token}`,
         }
       });
-      console.log(response);
       return response.data.data.token;
     } catch (error: any) {
       throw new Error('Failed to log into workspace');
@@ -113,7 +111,7 @@ const Login: React.FC = () => {
             },
           });
         } catch (workspaceError) {
-          console.log('error');
+          console.error('error');
           toast.error('Failed to complete workspace setup');
           setError('Failed to complete workspace setup');
           localStorage.removeItem('accessToken');
