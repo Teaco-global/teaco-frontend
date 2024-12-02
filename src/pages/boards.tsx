@@ -15,10 +15,14 @@ import { Column, Issue } from "../Interface";
 import { IssueTypeEnum } from "../enum";
 import AddIssueModal from "./modal/AddIssueModal";
 import { differenceInDays } from "date-fns";
-import {Tooltip} from 'react-tooltip';
-import toast, {Toaster} from 'react-hot-toast'
+import { Tooltip } from "react-tooltip";
+import toast, { Toaster } from "react-hot-toast";
+import IssueModal from "./modal/IssueModal";
+import { CheckIcon } from "@heroicons/react/24/outline";
 
-<div><Toaster/></div>
+<div>
+  <Toaster />
+</div>;
 
 const Boards: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -28,7 +32,10 @@ const Boards: React.FC = () => {
   const [activeSprint, setActiveSprint] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>("boards");
   const [daysLeft, setDaysLeft] = useState<number>(0);
-  const [isAddIssueModalOpen, setIsAddIssueModalOpen] = useState<boolean>(false);
+  const [isAddIssueModalOpen, setIsAddIssueModalOpen] =
+    useState<boolean>(false);
+  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -56,7 +63,7 @@ const Boards: React.FC = () => {
         );
 
         const fetchedColumns = response.data.data || [];
-        
+
         const sprintResponse = await axios.get(
           `${backendBaseUrl}/teaco/api/v1/project/${projectId}/sprints/active`,
           {
@@ -67,8 +74,13 @@ const Boards: React.FC = () => {
           }
         );
         const activeSprintData = sprintResponse.data.data;
-        const daysLeft = activeSprintData ? differenceInDays(activeSprintData.dueDate, activeSprintData.startDate) : null;
-        setDaysLeft(daysLeft!)
+        const daysLeft = activeSprintData
+          ? differenceInDays(
+              activeSprintData.dueDate,
+              activeSprintData.startDate
+            )
+          : null;
+        setDaysLeft(daysLeft!);
 
         const projectResponse = await axios.get(
           `${backendBaseUrl}/teaco/api/v1/project/${projectId}/`,
@@ -157,7 +169,7 @@ const Boards: React.FC = () => {
       );
       toast.success("Sprint ended successfully!");
       navigate(`/projects/${projectId}/backlogs`);
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Error ending sprint:", error.response?.data?.message);
       toast.error(error.response?.data?.message);
     }
@@ -178,7 +190,7 @@ const Boards: React.FC = () => {
           {...provided.droppableProps}
           ref={provided.innerRef}
           className="w-[400px] h-[60vh] bg-gray-50 rounded-sm p-4 flex flex-col"
-          >
+        >
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-gray-700">{column.label}</h3>
           </div>
@@ -196,7 +208,19 @@ const Boards: React.FC = () => {
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         className="p-2 bg-white shadow rounded hover:bg-gray-200"
+                        onClick={() => {
+                          setSelectedIssue(issue);
+                          setIsIssueModalOpen(true);
+                        }}
                       >
+                        <span>
+                          <h3 className="text-lg font-medium mb-4 text-white flex items-center">
+                            <CheckIcon className="w-23 h-5 border border-gray-300 rounded-lg mr-2 text-white bg-blue-500" />
+                            <span className="text-gray-500 font-semibold">
+                              SCRUM-{issue.issueCount}
+                            </span>
+                          </h3>
+                        </span>
                         <h4 className="text-lg font-medium">{issue.title}</h4>
                         <span
                           className={`inline-block rounded-full px-2 py-1 text-xs font-normal text-white ${
@@ -281,7 +305,9 @@ const Boards: React.FC = () => {
                   <span className="text-gray-900">{projectName}</span>
                 </nav>
                 <h1 className="text-4xl font-semibold mb-10">
-                  {activeSprint ? `SCRUM Sprint-${activeSprint.sprintCount}` : 'SCRUM board'}
+                  {activeSprint
+                    ? `SCRUM Sprint-${activeSprint.sprintCount}`
+                    : "SCRUM board"}
                 </h1>
                 <div className="mb-6 flex justify-between">
                   <div className="flex space-x-1 mb-4">
@@ -324,17 +350,31 @@ const Boards: React.FC = () => {
                   {activeSprint && (
                     <div className="flex items-center space-x-4">
                       <span
-                        className={`text-gray-600 font-medium ${isTooltipVisible ? 'cursor-pointer' : ''}`}
+                        className={`text-gray-600 font-medium ${
+                          isTooltipVisible ? "cursor-pointer" : ""
+                        }`}
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                         data-tooltip-id="sprint-tooltip"
                       >
-                        {daysLeft === 0 || daysLeft === 1 ? `${daysLeft} day left` : `${daysLeft} days left`}
+                        {daysLeft === 0 || daysLeft === 1
+                          ? `${daysLeft} day left`
+                          : `${daysLeft} days left`}
                       </span>
                       <Tooltip id="sprint-tooltip" className="bg-white">
                         <div>
-                          <p>Start Date: {new Date(activeSprint.startDate).toLocaleDateString()}</p>
-                          <p>Due Date: {new Date(activeSprint.dueDate).toLocaleDateString()}</p>
+                          <p>
+                            Start Date:{" "}
+                            {new Date(
+                              activeSprint.startDate
+                            ).toLocaleDateString()}
+                          </p>
+                          <p>
+                            Due Date:{" "}
+                            {new Date(
+                              activeSprint.dueDate
+                            ).toLocaleDateString()}
+                          </p>
                         </div>
                       </Tooltip>
                       <div className="flex gap-4">
@@ -393,7 +433,23 @@ const Boards: React.FC = () => {
         />
       )}
 
-      <Toaster/>
+      {selectedIssue && (
+        <IssueModal
+          isOpen={isIssueModalOpen}
+          onClose={() => {
+            setIsIssueModalOpen(false);
+            setSelectedIssue(null);
+          }}
+          issue={selectedIssue}
+          projectId={projectId!}
+          onIssueUpdate={() => {
+            // Optional: You might want to refresh the board data after an issue update
+            // You can call your fetchBoardData function here
+          }}
+        />
+      )}
+
+      <Toaster />
     </div>
   );
 };

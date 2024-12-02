@@ -9,6 +9,7 @@ export interface Column {
 export interface Issue {
   id: number;
   title: string;
+  issueCount: number;
   description: string | null;
   columnId: number | null;
   type: IssueTypeEnum;

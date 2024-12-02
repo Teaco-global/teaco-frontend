@@ -10,6 +10,8 @@ import { backendBaseUrl } from "../config";
 import { Issue } from "../Interface";
 import { IssueTypeEnum } from "../enum";
 import StartSprintModal from "./modal/StartSprintModal";
+import { CheckIcon } from "@heroicons/react/24/outline";
+import IssueModal from "./modal/IssueModal";
 
 const Backlogs: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -22,8 +24,11 @@ const Backlogs: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("backlogs");
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isStartSprintModalOpen, setIsStartSprintModalOpen] = useState<boolean>(false);
+  const [isStartSprintModalOpen, setIsStartSprintModalOpen] =
+    useState<boolean>(false);
   const [createdSprint, setCreatedSprint] = useState<any>(null);
+  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -73,10 +78,10 @@ const Backlogs: React.FC = () => {
         const fetchedSprintData = sprintResponse.data.data;
 
         setBacklogIssues(fetchedBacklogIssues);
-        setBacklogIssuesCount(fetchedBacklogIssues.length)
+        setBacklogIssuesCount(fetchedBacklogIssues.length);
 
         setSprintIssues(fetchedSprintData?.issues || []);
-        setSprintIssuesCount(fetchedSprintData.issues.length)
+        setSprintIssuesCount(fetchedSprintData.issues.length);
 
         setCreatedSprint(fetchedSprintData);
         setProjectName(projectData.name);
@@ -185,7 +190,19 @@ const Backlogs: React.FC = () => {
     onMove,
   }) => {
     return (
-      <div className="p-5 bg-white rounded-lg shadow hover:bg-gray-100">
+      <div
+        className="p-5 bg-white rounded-lg shadow hover:bg-gray-100"
+        onClick={() => {
+          setSelectedIssue(issue);
+          setIsIssueModalOpen(true);
+        }}
+      >
+        <h3 className="text-lg font-medium mb-4 text-white flex items-center">
+          <CheckIcon className="w-23 h-5 border border-gray-300 rounded-lg mr-2 text-white bg-blue-500" />
+          <span className="text-gray-500 font-semibold">
+            SCRUM-{issue.issueCount}
+          </span>
+        </h3>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <span
@@ -234,7 +251,9 @@ const Backlogs: React.FC = () => {
             }
             className="text-sm px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-lg"
           >
-            {isInSprint ? "Move to Backlog" : `Move to Sprint ${createdSprint.sprintCount}`}
+            {isInSprint
+              ? "Move to Backlog"
+              : `Move to Sprint ${createdSprint.sprintCount}`}
           </button>
         </div>
       </div>
@@ -318,7 +337,8 @@ const Backlogs: React.FC = () => {
               </div>
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-4 text-gray-400">
-                  SCRUM Sprint-{createdSprint.sprintCount} ({sprintIssuesCount} issues)
+                  SCRUM Sprint-{createdSprint.sprintCount} ({sprintIssuesCount}{" "}
+                  issues)
                 </h2>
                 <div className="p-4 bg-gray-50 rounded-lg shadow-sm">
                   {sprintIssues.length === 0 ? (
@@ -372,13 +392,24 @@ const Backlogs: React.FC = () => {
                   isOpen={isStartSprintModalOpen}
                   onClose={handleCloseStartSprintModal}
                   projectId={projectId || ""}
-                  sprintId={ createdSprint.id || ""}
+                  sprintId={createdSprint.id || ""}
                 />
               )}
             </div>
           )}
         </main>
       </div>
+      {selectedIssue && (
+        <IssueModal
+          isOpen={isIssueModalOpen}
+          onClose={() => {
+            setIsIssueModalOpen(false);
+            setSelectedIssue(null);
+          }}
+          issue={selectedIssue}
+          projectId={projectId!}
+        />
+      )}
 
       <ToastContainer />
     </div>

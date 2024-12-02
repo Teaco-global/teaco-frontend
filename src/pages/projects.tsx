@@ -71,7 +71,6 @@ const Projects: React.FC = () => {
 
   const handleDeleteProject = async (id: string) => {
     try {
-      console.log(id)
       const deletProjectResponse = await axios.delete(`${backendBaseUrl}/teaco/api/v1/project/${id}`, {
         headers: {
           Authorization: `${accessToken}`,

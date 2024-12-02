@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   HomeIcon,
@@ -11,14 +11,25 @@ import {
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
+import InviteMemberModal from "../pages/modal/InviteMemberModal";
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     navigate("/login");
   };
+
+  const handleInvite = () => {
+    setIsInviteModalOpen(true);
+  };
+
+  const handleCloseInviteModal = () => {
+    setIsInviteModalOpen(false);
+  };
+
 
   const menuItems = [
     { name: "Home", icon: <HomeIcon className="h-6 w-6" /> },
@@ -36,7 +47,16 @@ const Sidebar: React.FC = () => {
       <ul className="space-y-4 text-lg w-full">
         {menuItems.map((item) => (
           <li key={item.name} className="w-full">
-            <NavLink
+            {item.name === "Invite" ? (
+              <button
+              onClick={handleInvite}
+              className="flex items-center gap-4 text-left py-3 pl-4 rounded-md hover:text-[#0D00A8]"
+            >
+              {item.icon}
+              {item.name}
+            </button>
+            ): (
+              <NavLink
               to={`/${item.name.toLowerCase()}`}
               className={({ isActive }) =>
                 `flex items-center gap-4 text-left py-3 pl-4 rounded-md ${
@@ -49,6 +69,7 @@ const Sidebar: React.FC = () => {
               {item.icon}
               {item.name}
             </NavLink>
+            )}
           </li>
         ))}
       </ul>
@@ -62,6 +83,16 @@ const Sidebar: React.FC = () => {
           Log out
         </button>
       </div>
+      {isInviteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="w-full max-w-md mx-4">
+            <InviteMemberModal 
+              isOpen={isInviteModalOpen} 
+              onClose={handleCloseInviteModal} 
+            />
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

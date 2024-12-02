@@ -11,7 +11,7 @@ import Mails from './pages/mails';
 import Spaces from './pages/spaces';
 import Invite from './pages/invite';
 import Settings from './pages/settings';
-import Boards from './pages/Boards';
+import Boards from './pages/boards';
 import Backlogs from './pages/Backlogs';
 
 const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {

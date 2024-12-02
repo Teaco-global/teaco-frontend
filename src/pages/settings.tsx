@@ -8,6 +8,24 @@ const Settings: React.FC = () => {
 
   const userName = userData.name || "";
   const workspaceName = workspaceData.label || "";
+  const settingsMenuItems = [
+    { 
+      id: 'profile', 
+      label: 'Profile', 
+      icon: '👤' // You can replace with an actual icon component
+    },
+    { 
+      id: 'workspace', 
+      label: 'Workspace', 
+      icon: '🏢' // You can replace with an actual icon component
+    },
+    { 
+      id: 'teams', 
+      label: 'Teams', 
+      icon: '👥' // You can replace with an actual icon component
+    }
+  ];
+  
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -15,12 +33,7 @@ const Settings: React.FC = () => {
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-6">
-          <h1 className="text-4xl font-bold mb-6 text-center">
-            Welcome to {workspaceName}
-          </h1>
-          <p className="text-lg text-gray-700 text-center">
-            This is the settings page.
-          </p>
+          {/* Here i want settings menu in sidebar with profile, workspace and teams options */}
         </main>
       </div>
     </div>
