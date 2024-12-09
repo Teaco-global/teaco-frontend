@@ -9,10 +9,12 @@ import Projects from './pages/projects';
 import Wikis from './pages/wikis';
 import Mails from './pages/mails';
 import Spaces from './pages/spaces';
-import Invite from './pages/invite';
-import Settings from './pages/settings';
+import Settings from './pages/SettingsProfile';
 import Boards from './pages/boards';
 import Backlogs from './pages/Backlogs';
+import SettingsProfile from './pages/SettingsProfile';
+import SettingsWorkspace from './pages/SettingsWorkspace';
+import SettingsTeams from './pages/SettingsTeams';
 
 const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const isAuthenticated = !!localStorage.getItem('accessToken');
@@ -36,8 +38,11 @@ const App: React.FC = () => {
         <Route path="/wikis" element={<PrivateRoute><Wikis /></PrivateRoute>} />
         <Route path="/mails" element={<PrivateRoute><Mails /></PrivateRoute>} />
         <Route path="/spaces" element={<PrivateRoute><Spaces /></PrivateRoute>} />
-        <Route path="/invite" element={<PrivateRoute><Invite /></PrivateRoute>} />
+        {/* <Route path="/invite" element={<PrivateRoute><Invite /></PrivateRoute>} /> */}
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="/settings/profile" element={<PrivateRoute><SettingsProfile /></PrivateRoute>} />
+        <Route path="/settings/workspace" element={<PrivateRoute><SettingsWorkspace /></PrivateRoute>} />
+        <Route path="/settings/teams" element={<PrivateRoute><SettingsTeams /></PrivateRoute>} />
       </Routes>
     </Router>
   );

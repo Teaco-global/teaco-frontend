@@ -1,6 +1,5 @@
 import React from "react";
-import teacoIconWhite from '../../public/teaco-icon-white.png'
-import { UserCircleIcon } from "@heroicons/react/24/outline";
+import teacoIconWhite from "../../public/teaco-icon-white.png";
 
 interface TopBarProps {
   workspaceName: string;
@@ -17,12 +16,18 @@ const TopBar: React.FC<TopBarProps> = ({ workspaceName, userName }) => {
         <span className="text-lg font-semibold">{workspaceName}</span>
       </div>
       <div className="flex items-center space-x-3">
-          <img src={teacoIconWhite} alt="Teaco Logo" className="w-23 h-5" />
+        <img src={teacoIconWhite} alt="Teaco Logo" className="w-23 h-5" />
         <span className="text-lg font-semibold">Teaco</span>
       </div>
       <div className="flex items-center space-x-4">
         <span className="hidden md:inline">{userName}</span>
-        <UserCircleIcon className="w-7 h-7" />
+        <div className="rounded-full border">
+          <img
+            src="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
+            alt="Profile"
+            className="w-6 h-6 rounded-full object-cover"
+          />
+        </div>
       </div>
     </header>
   );
