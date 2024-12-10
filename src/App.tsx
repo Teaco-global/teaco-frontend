@@ -15,6 +15,7 @@ import Backlogs from './pages/Backlogs';
 import SettingsProfile from './pages/SettingsProfile';
 import SettingsWorkspace from './pages/SettingsWorkspace';
 import SettingsTeams from './pages/SettingsTeams';
+import AcceptInvitation from './pages/AcceptInvitation';
 
 const PrivateRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const isAuthenticated = !!localStorage.getItem('accessToken');
@@ -27,6 +28,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/sign-up" element={<SignUpForm />} />
         <Route path="/verify-account" element={<VerifyEmail />} />
+        <Route path="/accept-invitation" element={<AcceptInvitation />} />
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
         <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />

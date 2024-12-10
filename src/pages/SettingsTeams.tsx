@@ -24,7 +24,7 @@ const SettingsTeams: React.FC = () => {
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const pageSize = 10;
+  const pageSize = 15;
 
   const navigate = useNavigate();
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -46,7 +46,8 @@ const SettingsTeams: React.FC = () => {
       const response = await axios.get(`http://localhost:3000/teaco/api/v1/user-workspace/workspace-members`, {
         params: {
           offset: (page - 1) * pageSize,
-          limit: pageSize
+          limit: pageSize,
+          sort: 'ASC'
         },
         headers: {
           Authorization: `${accessToken}`,

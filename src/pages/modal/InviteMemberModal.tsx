@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
+import toast, { Toaster } from "react-hot-toast";
 import { backendBaseUrl } from "../../config";
 
+<div>
+  <Toaster />
+</div>;
 interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,6 +15,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "member">("member");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,9 +35,10 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       const accessToken = localStorage.getItem("accessToken");
       const workspaceSecret = localStorage.getItem("x-workspace-secret-id");
 
-      await axios.post(
-        `${backendBaseUrl}/teaco/api/v1/project/invite`,
+    const inviteMemberResponse = await axios.post(
+        `${backendBaseUrl}/teaco/api/v1/user-workspace/invite-member`,
         {
+          name,
           email,
           role,
         },
@@ -44,18 +49,17 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           },
         }
       );
-
-      // Successful invitation
-      toast.success("Member invited successfully!");
-
-      // Reset form and close modal
+      console.log(inviteMemberResponse);
+      const inviteMemberSuccessMessage = inviteMemberResponse.data?.message
+      toast.success(inviteMemberSuccessMessage)
+      setName("");
       setEmail("");
       setRole("member");
-      onClose();
+      setTimeout(() => {
+        onClose();
+      }, 1000);
     } catch (error: any) {
-      // Handle invitation error
-      const errorMessage =
-        error.response?.data?.message || "Failed to invite member";
+      const errorMessage = error.response?.data?.message || "Failed to invite member";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -75,6 +79,23 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
           {/* Modal Body */}
           <form onSubmit={handleSubmit} className="relative flex-auto p-6">
+          <div className="mb-4">
+              <label
+                htmlFor="name"
+                className="block mb-2 text-sm font-medium text-gray-600"
+              >
+                Full Name
+              </label>
+              <input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter member's full name"
+                required
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D00A8]"
+              />
+            </div>
+
             <div className="mb-4">
               <label
                 htmlFor="email"
@@ -133,6 +154,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           </form>
         </div>
       </div>
+      <Toaster/>
     </div>
   );
 };
