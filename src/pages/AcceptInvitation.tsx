@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import toast, { Toaster } from "react-hot-toast";
 import { useNavigate, useLocation } from 'react-router-dom';
 import teacoLogo from '../assets/teaco.png';
 import { backendBaseUrl } from '../config';
 
+<div>
+  <Toaster />
+</div>;
 const AcceptInvitation: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,13 +40,14 @@ const AcceptInvitation: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/invitation/accept`, {
+      const response = await axios.put(`${backendBaseUrl}/teaco/api/v1/user-workspace/accept-invite`, {
+        accept: true,
         token: invitationToken,
         password,
       });
 
       if (response.status === 200) {
-        toast.success('Invitation accepted successfully!');
+        toast.success(response.data.message);
         setSuccess('Invitation accepted successfully!');
         navigate('/login');
       }
@@ -118,7 +121,7 @@ const AcceptInvitation: React.FC = () => {
           </button>
         </form>
       </div>
-      <ToastContainer />
+      <Toaster/>
     </div>
   );
 };

@@ -49,7 +49,6 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
           },
         }
       );
-      console.log(inviteMemberResponse);
       const inviteMemberSuccessMessage = inviteMemberResponse.data?.message
       toast.success(inviteMemberSuccessMessage)
       setName("");
