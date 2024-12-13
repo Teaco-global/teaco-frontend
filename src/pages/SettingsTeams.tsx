@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import TopBar from "../components/TopBar";
 import Sidebar from "../components/SideBar";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { TrashIcon } from "@heroicons/react/24/outline";
+
+<div>
+  <Toaster />
+</div>;
 
 interface WorkspaceMember {
   id: number;
@@ -18,12 +23,52 @@ interface WorkspaceMember {
     }
   }[];
 }
+interface DeleteConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  memberName: string;
+}
+
+const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  memberName 
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl">
+        <h2 className="text-lg font-semibold mb-4">Remove Member</h2>
+        <p className="mb-6">Are you sure you want to remove <span className="font-bold">{memberName}</span> from the workspace?</p>
+        <div className="flex justify-end space-x-3">
+          <button 
+            onClick={onClose} 
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={onConfirm} 
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Yes, Remove
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SettingsTeams: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("Teams");
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<WorkspaceMember | null>(null);
   const pageSize = 15;
 
   const navigate = useNavigate();
@@ -54,12 +99,49 @@ const SettingsTeams: React.FC = () => {
           "x-workspace-secret-id": `${workspaceSecret}`,
         },
       });
-
       setMembers(response.data.data);
       setTotalCount(response.data.count);
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error?.message || 'An error occurred';
+      toast.error(errorMessage);
       console.error("Error fetching workspace members:", error);
     }
+  };
+
+  const handleDeleteMember = async () => {
+    if (!selectedMember) return;
+
+    try {
+      const response = await axios.delete(`http://localhost:3000/teaco/api/v1/user-workspace/remove-member`, {
+        data: {
+          userWorkspaceId: selectedMember.id
+        },
+        headers: {
+          Authorization: `${accessToken}`,
+          "x-workspace-secret-id": `${workspaceSecret}`,
+        },
+      });
+      if (response.status === 200) {
+        toast.success(response.data.message)
+      }
+      fetchWorkspaceMembers();
+      setDeleteModalOpen(false);
+      setSelectedMember(null);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || 'An error occurred';
+      toast.error(errorMessage);
+      console.error("Error removing workspace member:", error);
+    }
+  };
+
+  const openDeleteModal = (member: WorkspaceMember) => {
+    setSelectedMember(member);
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setSelectedMember(null);
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -137,7 +219,10 @@ const SettingsTeams: React.FC = () => {
                         </td>
                         <td className="px-6 py-3 whitespace-nowrap">{member.status}</td>
                         <td className="px-6 py-3 whitespace-nowrap text-right">
-                          <button className="text-red-700 hover:text-red-900">
+                          <button 
+                            onClick={() => openDeleteModal(member)} 
+                            className="text-red-700 hover:text-red-900"
+                          >
                             {/* Delete */}
                           <TrashIcon className="w-23 h-5 ml-10"/>  
                           </button>
@@ -169,6 +254,13 @@ const SettingsTeams: React.FC = () => {
           </div>
         </main>
       </div>
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteMember}
+        memberName={selectedMember?.user.name || ''}
+      />
+      <Toaster/>
     </div>
   );
 };
