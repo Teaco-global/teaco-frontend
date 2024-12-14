@@ -1,21 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import TopBar from "../components/TopBar";
 import Sidebar from "../components/SideBar";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import { io } from "socket.io-client";
+import {
+  PaperAirplaneIcon
+} from "@heroicons/react/24/outline";
+import EmojiPicker from 'emoji-picker-react';
 
-<div>
-  <Toaster />
-</div>;
 interface User {
   id: number;
   name: string;
   email: string;
 }
+
 interface WorkspaceMember {
   id: number;
   user: User;
   userWorkspaceRoles: Array<{ role: { label: string } }>;
+}
+
+interface Message {
+  id: number;
+  body: string;
+  senderId: number;
+  createdAt: string;
 }
 
 const Chats: React.FC = () => {
@@ -27,6 +37,12 @@ const Chats: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  const [room, setCurrentRoom] = useState();
+
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState<string>("");
+  const [messagesPage, setMessagesPage] = useState(1);
+  const [socket, setSocket] = useState<any>(null);
 
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const workspaceData = JSON.parse(
@@ -34,17 +50,58 @@ const Chats: React.FC = () => {
   );
   const accessToken = localStorage.getItem("accessToken");
   const workspaceSecret = localStorage.getItem("x-workspace-secret-id");
+  const backendBaseUrl = "http://localhost:3000";
 
   const userName = userData.name || "";
   const workspaceName = workspaceData.label || "";
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, selectedMember]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
     fetchActiveMembers();
   }, [page]);
+
+  useEffect(() => {
+    const newSocket = io("http://localhost:8001", {
+      auth: {
+        token: accessToken,
+      },
+      extraHeaders: {
+        "x-workspace-secret-id": workspaceSecret || "",
+      },
+    });
+    newSocket.on('connect', () => {
+      console.log("Socket connected");
+    });
+
+    newSocket.on("new_message", (message: Message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    setSocket(newSocket);
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
   const fetchActiveMembers = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:3000/teaco/api/v1/user-workspace/active-workspace-members`,
+        `${backendBaseUrl}/teaco/api/v1/user-workspace/active-workspace-members`,
         {
           params: {
             offset: (page - 1) * pageSize,
@@ -69,7 +126,73 @@ const Chats: React.FC = () => {
     }
   };
 
-  // Search members
+  // Create chat room
+  const createChatRoom = async (receiverId: number) => {
+    try {
+      const response = await axios.post(
+        `${backendBaseUrl}/teaco/api/v1/chat/create-room`,
+        { receiverId },
+        {
+          headers: {
+            Authorization: `${accessToken}`,
+            "x-workspace-secret-id": `${workspaceSecret}`,
+          },
+        }
+      );
+      setCurrentRoom(response.data.data);
+      await fetchMessages(response.data.data.id);
+    } catch (error) {
+      toast.error("Error creating chat room");
+      console.error("Error creating chat room:", error);
+    }
+  };
+
+  // Fetch messages for a room
+  const fetchMessages = async (roomId: number, page = 1) => {
+    try {
+      const response = await axios.get(
+        `${backendBaseUrl}/teaco/api/v1/chat/get-messages`,
+        {
+          params: {
+            roomId,
+            offset: (page - 1) * pageSize,
+            limit: 100000,
+            sort: "ASC",
+            order: "createdAt",
+          },
+          headers: {
+            Authorization: `${accessToken}`,
+            "x-workspace-secret-id": `${workspaceSecret}`,
+          },
+        }
+      );
+
+      const newMessages = response.data.data;
+      setMessages(page === 1 ? newMessages : [...messages, ...newMessages]);
+      setMessagesPage(page);
+    } catch (error) {
+      toast.error("Error fetching messages");
+      console.error("Error fetching messages:", error);
+    }
+  };
+
+  // Send a message
+  const sendMessage = async (room:any) => {
+    try {
+      if (socket && newMessage.trim()) {
+        socket.emit("send_message", {
+          roomId: room.id,
+          body: newMessage,
+        });
+        
+        setNewMessage("");
+      }
+    } catch (error) {
+      toast.error("Error sending message");
+      console.error("Error sending message:", error);
+    }
+  };
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
@@ -83,9 +206,9 @@ const Chats: React.FC = () => {
     setFilteredMembers(filtered);
   };
 
-  // Select member for chat
   const handleMemberSelect = (member: WorkspaceMember) => {
     setSelectedMember(member);
+    createChatRoom(member.id);
   };
 
   return (
@@ -121,13 +244,7 @@ const Chats: React.FC = () => {
                     />
                   </div>
                   <div className="font-normal">{member.user.name}</div>
-                  {/* <div className="text-sm text-gray-500">{member.user.email}</div> */}
                 </div>
-                {/* {member.userWorkspaceRoles[0]?.role?.label && (
-                  <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-                    {member.userWorkspaceRoles[0].role.label}
-                  </span>
-                )} */}
               </div>
             ))}
           </div>
@@ -147,23 +264,69 @@ const Chats: React.FC = () => {
                 <h2 className="text-xl font-bold">
                   {selectedMember.user.name}
                 </h2>
+              </div> 
+              {/* Message container */}
+              <div className="flex-1 p-4 overflow-y-auto bg-gray-50" style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-500">
+                    No messages yet. Start a conversation!
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${
+                          message.senderId === selectedMember.id
+                            ? "justify-start"
+                            : "justify-end"
+                        }`}
+                      >
+                        <div
+                          className={`p-2 rounded-lg max-w-[70%] ${
+                            message.senderId === selectedMember.id
+                              ? "bg-gray-200"
+                              : "bg-[#0D00A8] text-white"
+                          }`}
+                        >
+                          {message.body}
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
               </div>
-              <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
-                <div className="text-center text-gray-500">
-                  No messages yet. Start a conversation!
-                </div>
-              </div>
-              <div className="border-t p-4 bg-white">
+
+              {/* Message box */}
+              <div className="border-t p-8 bg-white flex">
                 <input
                   type="text"
                   placeholder="Type a message..."
-                  className="w-full p-2 border rounded"
+                  className="flex-1 p-2 border border-[#0D00A8] rounded mr-2"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter" && room) {
+                      sendMessage(room);
+                    }
+                  }}
                 />
+                <button
+                  className="text-[#0D00A8] px-4 py-2 rounded mr-2"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                ></button>
+                <button
+                  className="text-[#0D00A8] px-4 py-2 rounded"
+                  onClick={() => sendMessage(room)}
+                >
+                  <PaperAirplaneIcon className="h-6 w-6" />
+                </button>
               </div>
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center text-black">
-                  <p>Select a member to start a chat</p>
+              <p>Select a member to start a chat</p>
             </div>
           )}
         </main>
