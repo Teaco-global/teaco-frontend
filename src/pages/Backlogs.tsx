@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import TopBar from "../components/TopBar";
+import TopBar from '../components/TopBar';
 import Sidebar from "../components/SideBar";
 import AddIssueModal from "./modal/AddIssueModal";
 import { backendBaseUrl } from "../config";
