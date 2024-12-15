@@ -33,7 +33,7 @@ const Chats: React.FC = () => {
     null
   );
   const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const pageSize = 10;
   const [room, setCurrentRoom] = useState();
 
@@ -58,6 +58,7 @@ const Chats: React.FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
+    console.log(messagesPage)
     scrollToBottom();
   }, [messages, selectedMember]);
 
