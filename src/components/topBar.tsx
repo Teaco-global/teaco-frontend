@@ -1,5 +1,5 @@
 import React from "react";
-import teacoIconWhite from "../../public/teaco-icon-white.png";
+import teacoIconWhite from '/teaco-icon-white.png';
 
 interface TopBarProps {
   workspaceName: string;
