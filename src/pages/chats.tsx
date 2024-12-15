@@ -7,7 +7,6 @@ import { io } from "socket.io-client";
 import {
   PaperAirplaneIcon
 } from "@heroicons/react/24/outline";
-
 interface User {
   id: number;
   name: string;

@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       fs: {
-        cachedChecks: false
+        cachedChecks: false,
+        preTransformRequests: false
       }
     }
   };
