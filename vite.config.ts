@@ -10,6 +10,11 @@ export default defineConfig(({ mode }) => {
       "process.env": env,
     },
     plugins: [react(), viteTsconfigPaths()],
+    resolve: {
+      alias: {
+        src: path.resolve(__dirname, './src'),
+      },
+    },
     build: {
       chunkSizeWarningLimit: 1600,
     },
