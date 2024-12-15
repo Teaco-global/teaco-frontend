@@ -7,6 +7,8 @@ import { io } from "socket.io-client";
 import {
   PaperAirplaneIcon
 } from "@heroicons/react/24/outline";
+
+import { backendBaseUrl } from "../config";
 interface User {
   id: number;
   name: string;
@@ -48,7 +50,6 @@ const Chats: React.FC = () => {
   );
   const accessToken = localStorage.getItem("accessToken");
   const workspaceSecret = localStorage.getItem("x-workspace-secret-id");
-  const backendBaseUrl = "http://localhost:3000";
 
   const userName = userData.name || "";
   const workspaceName = workspaceData.label || "";
@@ -71,7 +72,7 @@ const Chats: React.FC = () => {
   }, [page]);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8001", {
+    const newSocket = io(backendBaseUrl, {
       auth: {
         token: accessToken,
       },
