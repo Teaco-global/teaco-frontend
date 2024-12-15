@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import TopBar from "../components/TopBar";
-import Sidebar from "../components/SideBar";
+import TopBar from "../components/TopBar.tsx";
+import Sidebar from "../components/SideBar.tsx";
 import rocketImage from "../assets/rocket.svg";
 
 const Home: React.FC = () => {
