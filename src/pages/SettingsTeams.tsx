@@ -5,6 +5,7 @@ import Sidebar from "../components/SideBar";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { backendBaseUrl } from "../config";
 
 <div>
   <Toaster />
@@ -88,7 +89,7 @@ const SettingsTeams: React.FC = () => {
 
   const fetchWorkspaceMembers = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/teaco/api/v1/user-workspace/workspace-members`, {
+      const response = await axios.get(`${backendBaseUrl}/teaco/api/v1/user-workspace/workspace-members`, {
         params: {
           offset: (page - 1) * pageSize,
           limit: pageSize,
