@@ -2,7 +2,7 @@ import React from "react";
 import TopBar from "../components/TopBar";
 import Sidebar from "../components/SideBar";
 
-const Spaces: React.FC = () => {
+const Channels: React.FC = () => {
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const workspaceData = JSON.parse(localStorage.getItem("workspaceData") || "{}");
 
@@ -27,4 +27,4 @@ const Spaces: React.FC = () => {
   );
 };
 
-export default Spaces;
+export default Channels;

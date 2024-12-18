@@ -236,14 +236,13 @@ const Chats: React.FC = () => {
                 onClick={() => handleMemberSelect(member)}
               >
                 <div className="flex items-center">
-                  <div>
-                    <img
-                      src="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
-                      alt="Profile"
-                      className="w-8 h-8 rounded-xl object-cover mr-2"
-                    />
+                  <div 
+                    className="w-8 h-8 rounded-xl object-cover mr-2 bg-gray-300 text-black font-black text-center 
+                          flex justify-center items-center" 
+                  > 
+                    {member.user.name ? member.user.name.split('')[0] : '?'} 
                   </div>
-                  <div className="font-normal">{member.user.name}</div>
+                  <div className="font-semibold">{member.user.name}</div>
                 </div>
               </div>
             ))}
@@ -254,13 +253,12 @@ const Chats: React.FC = () => {
           {selectedMember ? (
             <div className="flex-1 flex flex-col">
               <div className="bg-white border-b p-4 flex items-center">
-                <div>
-                  <img
-                    src="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
-                    alt="Profile"
-                    className="w-10 h-10 rounded-2xl object-cover mr-2"
-                  />
-                </div>
+              <div 
+                    className="w-8 h-8 rounded-xl object-cover mr-2 bg-gray-300 text-black font-black text-center 
+                          flex justify-center items-center" 
+                  > 
+                    {selectedMember.user.name ? selectedMember.user.name.split('')[0] : '?'} 
+                  </div>
                 <h2 className="text-xl font-bold">
                   {selectedMember.user.name}
                 </h2>

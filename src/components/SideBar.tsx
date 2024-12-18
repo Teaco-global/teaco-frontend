@@ -35,8 +35,8 @@ const Sidebar: React.FC = () => {
     { name: "Chats", icon: <ChatBubbleLeftEllipsisIcon className="h-6 w-6" /> },
     { name: "Projects", icon: <FolderIcon className="h-6 w-6" /> },
     { name: "Wikis", icon: <BookOpenIcon className="h-6 w-6" /> },
-    { name: "Mails", icon: <EnvelopeIcon className="h-6 w-6" /> },
-    { name: "Spaces", icon: <UsersIcon className="h-6 w-6" /> },
+    // { name: "Mails", icon: <EnvelopeIcon className="h-6 w-6" /> },
+    { name: "Channels", icon: <UsersIcon className="h-6 w-6" /> },
     { name: "Invite", icon: <UserPlusIcon className="h-6 w-6" /> },
     { name: "Settings", icon: <Cog6ToothIcon className="h-6 w-6" />},
   ];

@@ -8,7 +8,7 @@ import Chats from './pages/Chats';
 import Projects from './pages/Projects';
 import Wikis from './pages/Wikis';
 import Mails from './pages/Mails';
-import Spaces from './pages/Spaces';
+import Channels from './pages/Channels';
 import Settings from './pages/SettingsProfile';
 import Boards from './pages/Boards';
 import Backlogs from './pages/Backlogs';
@@ -39,7 +39,7 @@ const App: React.FC = () => {
         <Route path="/projects/:projectId/timeline" element={<PrivateRoute><Boards /></PrivateRoute>} />
         <Route path="/wikis" element={<PrivateRoute><Wikis /></PrivateRoute>} />
         <Route path="/mails" element={<PrivateRoute><Mails /></PrivateRoute>} />
-        <Route path="/spaces" element={<PrivateRoute><Spaces /></PrivateRoute>} />
+        <Route path="/channels" element={<PrivateRoute><Channels /></PrivateRoute>} />
         {/* <Route path="/invite" element={<PrivateRoute><Invite /></PrivateRoute>} /> */}
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="/settings/profile" element={<PrivateRoute><SettingsProfile /></PrivateRoute>} />
