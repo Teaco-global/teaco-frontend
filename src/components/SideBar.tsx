@@ -5,7 +5,7 @@ import {
   ChatBubbleLeftEllipsisIcon,
   FolderIcon,
   BookOpenIcon,
-  EnvelopeIcon,
+  // EnvelopeIcon,
   UsersIcon,
   UserPlusIcon,
   Cog6ToothIcon,

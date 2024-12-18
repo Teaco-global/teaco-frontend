@@ -1,0 +1,1 @@
+export const appPrimaryColor = '#0D00A8'
