@@ -1,0 +1,21 @@
+.editor-container {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 16px;
+    min-height: 300px;
+  }
+  
+  .editor-content {
+    outline: none;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  .editor-placeholder {
+    color: #aaa;
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    pointer-events: none;
+  }
+  

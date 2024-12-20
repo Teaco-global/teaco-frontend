@@ -1,16 +1,24 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 import toast, { Toaster } from "react-hot-toast";
+import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { Cog8ToothIcon } from "@heroicons/react/24/outline";
+import { appPrimaryColor } from "../constants/index";
 import TopBar from "../components/TopBar";
 import Sidebar from "../components/SideBar";
 import { backendBaseUrl } from "../config";
-import { appPrimaryColor } from "../constants"
+import CreateChannelModal from "./modal/CreateChannelModal";
+import UpdateChannelModal from "./modal/UpdateChannelModal";
+import Button from "../components/UI/Button";
+import Input from "../components/UI/Input";
 
 interface User {
   id: number;
   name: string;
   userWorkspaceId: string;
 }
+
 interface ChannelUserWorkspace {
   id: number;
   room: Channel;
@@ -23,102 +31,96 @@ interface Channel {
   memberCount?: number;
 }
 
-// Basic Button Component
-const Button: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ 
-  children, 
-  className = '', 
-  ...props 
-}) => {
-  return (
-    <button 
-      className={`px-4 py-2 bg-[${appPrimaryColor}] text-white rounded ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
+interface UserWorkspace {
+  id: number;
+  user: User;
+}
 
-const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = ({ 
-  className = '', 
-  ...props 
-}) => {
-  return (
-    <input 
-      className={`border rounded px-3 py-2 w-full ${className}`}
-      {...props}
-    />
-  );
-};
-
-const Checkbox: React.FC<{
-  label?: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}> = ({ label, checked, onChange }) => {
-  return (
-    <label className="inline-flex items-center">
-      <input
-        type="checkbox"
-        className="form-checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      {label && <span className="ml-2">{label}</span>}
-    </label>
-  );
-};
-
-// Basic Modal Component
-const Modal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  title?: string;
-}> = ({ isOpen, onClose, children, title }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-96">
-        {title && <h2 className="text-xl font-bold mb-4">{title}</h2>}
-        {children}
-        <div className="mt-4 flex justify-end space-x-2">
-          <Button onClick={onClose} className="bg-gray-300 text-black">Cancel</Button>
-        </div>
-      </div>
-    </div>
-  );
-};
+interface Message {
+  id: number;
+  body: string;
+  senderId: number;
+  createdAt: string;
+  sender?: UserWorkspace;
+}
 
 const Channels: React.FC = () => {
-  // State variables
-  const [channelUserWorkspaces, setChannelUserWorkspace] = useState<ChannelUserWorkspace[]>([]);
-  const [acitceMembers, setActiveMembers] = useState<User[]>([]);
-  const [acitveFilteredMembers, setActiveFilteredMembers] = useState<User[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [channelUserWorkspaces, setChannelUserWorkspace] = useState<
+    ChannelUserWorkspace[]
+  >([]);
+  const [acitveMembers, setActiveMembers] = useState<User[]>([]);
+  const [acitveFilteredMembers, setActiveFilteredMembers] = useState<User[]>(
+    []
+  );
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredChannelUserWorkspaces, setFilteredChannelUserWorkspaces] = useState<ChannelUserWorkspace[]>([]);
-  const [isPublic, setIsPublic] = useState(true);
-  const [channelName, setChannelName] = useState("");
+  const [filteredChannelUserWorkspaces, setFilteredChannelUserWorkspaces] =
+    useState<ChannelUserWorkspace[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [room, setCurrentRoom] = useState();
+  const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState<string>("");
+  const [socket, setSocket] = useState<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pageSize = 10;
+  const [messagesPage, setMessagesPage] = useState(1);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
-  // User and workspace data from local storage
+  // User and workspace data
+  const userWorkspaceData = JSON.parse(
+    localStorage.getItem("userWorkspaceData") || "{}"
+  );
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-  const workspaceData = JSON.parse(localStorage.getItem("workspaceData") || "{}");
+  const workspaceData = JSON.parse(
+    localStorage.getItem("workspaceData") || "{}"
+  );
   const accessToken = localStorage.getItem("accessToken");
   const workspaceSecret = localStorage.getItem("x-workspace-secret-id");
 
   const userName = userData.name || "";
   const workspaceName = workspaceData.label || "";
 
-  // Fetch workspace users and channels on component mount
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const newSocket = io(backendBaseUrl, {
+      auth: {
+        token: accessToken,
+      },
+      extraHeaders: {
+        "x-workspace-secret-id": workspaceSecret || "",
+      },
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected");
+    });
+
+    newSocket.on("new_channel_message", (message: Message) => {
+      setMessages((prevMessages) => [...prevMessages, message]);
+    });
+
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    setSocket(newSocket);
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
   useEffect(() => {
     fetchWorkspaceUsers();
     fetchChannels();
   }, []);
 
-  // Fetch workspace users
   const fetchWorkspaceUsers = async () => {
     try {
       const response = await axios.get(
@@ -131,7 +133,7 @@ const Channels: React.FC = () => {
         }
       );
 
-      const membersData = response.data.data
+      const membersData = response.data.data;
       const filteredMembersData = membersData.filter(
         (member: any) => member.user.id !== userData.id
       );
@@ -144,7 +146,6 @@ const Channels: React.FC = () => {
     }
   };
 
-  // Fetch channels
   const fetchChannels = async () => {
     try {
       const response = await axios.get(
@@ -164,21 +165,13 @@ const Channels: React.FC = () => {
     }
   };
 
-  // Create a new channel
-  const createChannel = async () => {
+  const handleCreateChannel = async (
+    channelName: string,
+    isPublic: boolean,
+    selectedUsers: string[]
+  ) => {
     try {
-      // Validate channel name
-      if (!channelName.trim()) {
-        toast.error("Channel name cannot be empty");
-        return;
-      }
-
-      // Prepare payload
-      const payload = {
-        label: channelName,
-        isPublic,
-        members: selectedUsers,
-      };
+      const payload = { label: channelName, isPublic, members: selectedUsers };
       const response = await axios.post(
         `${backendBaseUrl}/teaco/api/v1/chat/create-channel`,
         payload,
@@ -189,19 +182,14 @@ const Channels: React.FC = () => {
           },
         }
       );
-      toast.success(response.data.message)
-      setChannelName("");
-      setSelectedUsers([]);
-      setIsPublic(true);
-      setIsModalOpen(false);
+      toast.success(response.data.message);
       fetchChannels();
     } catch (error) {
       toast.error("Error creating channel");
-      console.error("Error creating channel:", error);
     }
   };
 
-  // Handle channel search
+  // Search channels
   const handleChannelSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
@@ -213,13 +201,92 @@ const Channels: React.FC = () => {
     setFilteredChannelUserWorkspaces(filtered);
   };
 
-  // Toggle user selection for channel creation
-  const toggleUserSelection = (userWorkspaceId: string) => {
-    setSelectedUsers((prev) => 
-      prev.includes(userWorkspaceId)
-        ? prev.filter((id) => id !== userWorkspaceId)
-        : [...prev, userWorkspaceId]
-    );
+  // Handle channel selection
+  const handleChannelSelect = async (
+    channel: any,
+    roomId: number,
+    page = 1
+  ) => {
+    try {
+      const response = await axios.get(
+        `${backendBaseUrl}/teaco/api/v1/chat/get-messages`,
+        {
+          params: {
+            roomId,
+            offset: (page - 1) * pageSize,
+            limit: 100000,
+            sort: "ASC",
+            order: "createdAt",
+          },
+          headers: {
+            Authorization: `${accessToken}`,
+            "x-workspace-secret-id": `${workspaceSecret}`,
+          },
+        }
+      );
+
+      console.log(response.data.data);
+      setCurrentRoom(channel);
+      setSelectedChannel(channel);
+      const newMessages = response.data.data;
+      setMessages(page === 1 ? newMessages : [...messages, ...newMessages]);
+      setMessagesPage(page);
+    } catch (error) {
+      toast.error("Error fetching channel messages");
+      console.error("Error fetching channel messages:", error);
+    }
+  };
+
+  const sendMessage = async (room: any) => {
+    try {
+      if (socket && newMessage.trim()) {
+        console.log(userWorkspaceData.id);
+        socket.emit("send_message", {
+          roomId: room.id,
+          body: newMessage,
+        });
+
+        setNewMessage("");
+      }
+    } catch (error) {
+      toast.error("Error sending message");
+      console.error("Error sending message:", error);
+    }
+  };
+
+  const handleUpdateChannel = async (
+    channelName: string,
+    isPublic: boolean,
+    selectedUsers: string[]
+  ) => {
+    try {
+      if (!selectedChannel) return;
+      
+      const payload = {
+        channelId: selectedChannel.id,
+        label: channelName,
+        isPublic,
+        members: selectedUsers
+      };
+      
+      const response = await axios.put(
+        `${backendBaseUrl}/teaco/api/v1/chat/update-channel`,
+        payload,
+        {
+          headers: {
+            Authorization: `${accessToken}`,
+            "x-workspace-secret-id": `${workspaceSecret}`,
+          },
+        }
+      );
+      
+      toast.success(response.data.message);
+      fetchChannels(); 
+      setIsUpdateModalOpen(false);
+    } catch (error) {
+      toast.error("Error updating channel");
+      console.error("Error updating channel:", error);
+    }
   };
 
   return (
@@ -227,9 +294,9 @@ const Channels: React.FC = () => {
       <TopBar workspaceName={workspaceName} userName={userName} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        
-        {/* Left Sidebar - Channel List */}
-        <div className="w-1/6 bg-white border-r overflow-y-auto">
+
+        {/* Channels List */}
+        <div className="w-1/8 bg-white border-r overflow-y-auto">
           <div className="p-4 border-b flex items-center">
             <div className="relative flex-1 mr-2">
               <Input
@@ -240,102 +307,158 @@ const Channels: React.FC = () => {
                 className="w-full pl-8"
               />
             </div>
-            
-            <Button 
-              onClick={() => setIsModalOpen(true)}
-              className="ml-2"
-            >
+
+            <Button onClick={() => setIsModalOpen(true)} className="ml-2">
               +
             </Button>
           </div>
-          
-          {/* Channel List */}
+
           <div className="divide-y">
-            {filteredChannelUserWorkspaces.map((filteredChannelsUserWorkspace) => (
-              <div
-                key={filteredChannelsUserWorkspace.room.id}
-                className="p-2 cursor-pointer hover:bg-gray-100 flex items-center justify-between"
-              >
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center mr-2">
-                    #
-                  </div>
-                  <div>
-                    <div className="font-semibold">{filteredChannelsUserWorkspace.room.label}</div>
-                    <div className="text-xs text-gray-500">
-                    {/* {filteredChannelsUserWorkspace.room.isPublic ? 'Public' : 'Private'} · {filteredChannelsUserWorkspace.room.memberCount} members */}
-                      {filteredChannelsUserWorkspace.room.isPublic ? 'Public' : 'Private'}
+            {filteredChannelUserWorkspaces.map(
+              (filteredChannelsUserWorkspace) => (
+                <div
+                  key={filteredChannelsUserWorkspace.room.id}
+                  className={`p-2 cursor-pointer hover:bg-gray-100 flex items-center justify-between ${
+                    selectedChannel?.id ===
+                    filteredChannelsUserWorkspace.room.id
+                      ? "bg-blue-100"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    handleChannelSelect(
+                      filteredChannelsUserWorkspace.room,
+                      filteredChannelsUserWorkspace.room.id
+                    )
+                  }
+                >
+                  <div className="flex items-center">
+                    <div>
+                      <div className="font-semibold">
+                        # {filteredChannelsUserWorkspace.room.label}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {filteredChannelsUserWorkspace.room.isPublic
+                          ? "Public"
+                          : "Private"}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
 
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col justify-center items-center bg-gray-50">
-          <h1 className="text-4xl font-bold mb-4 text-center">
-            Select a Channel
-          </h1>
-          <p className="text-lg text-gray-600 text-center">
-            Choose a channel from the list to start collaborating
-          </p>
-        </main>
-      </div>
-      
-      {/* Create Channel Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Create New Channel"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block mb-2">Channel Name</label>
-            <Input
-              value={channelName}
-              onChange={(e) => setChannelName(e.target.value)}
-              placeholder="Enter channel name"
-            />
-          </div>
-          
-          <div>
-            <Checkbox
-              label="Public Channel"
-              checked={isPublic}
-              onChange={setIsPublic}
-            />
-          </div>
-          
-          <div>
-            <label className="block mb-2">Select Channel Members</label>
-            <div className="max-h-48 overflow-y-auto border rounded p-2">
-              {acitveFilteredMembers.map((acitveFilteredMember:any) => (
-                <div 
-                  key={acitveFilteredMember.user.id} 
-                  className="flex items-center space-x-2 mb-2"
-                >
-                  <Checkbox
-                    label={acitveFilteredMember.user.name}
-                    checked={selectedUsers.includes(acitveFilteredMember.id)}
-                    onChange={() => toggleUserSelection(acitveFilteredMember.id)}
-                  />
+        {selectedChannel ? (
+          <div className="flex-1 flex flex-col">
+            <div className="bg-white border-b p-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">
+                # {selectedChannel.label}
+              </h2>
+              <div>
+                <Cog8ToothIcon 
+                  className="h-6 w-6" 
+                  onClick={() => setIsUpdateModalOpen(true)}
+                />
+              </div>
+            </div>
+            <div
+              className="flex-1 p-4 overflow-y-auto bg-gray-50"
+              style={{ maxHeight: "calc(100vh - 250px)" }}
+            >
+              {messages.length === 0 ? (
+                <div className="text-center text-gray-500">
+                  No messages yet. Start a conversation!
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex flex-col ${
+                        message.senderId === userWorkspaceData.id
+                          ? "items-end"
+                          : "items-start"
+                      }`}
+                    >
+                      {/* Sender's name above the message */}
+                      {message.senderId !== userWorkspaceData.id && (
+                        <div className="text-sm text-gray-500 mb-1">
+                          {message.sender?.user.name}
+                        </div>
+                      )}
+                      <div
+                        className={`p-2 rounded-lg max-w-[70%] ${
+                          message.senderId === userWorkspaceData.id
+                            ? "bg-[#0D00A8] text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        {message.body}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
+
+            {/* Message Input */}
+            <div className="border-t p-8 bg-white flex">
+              <input
+                type="text"
+                placeholder="Type a message..."
+                className="flex-1 p-2 border border-[] rounded mr-2"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter" && room) {
+                    sendMessage(room);
+                  }
+                }}
+              />
+              <button
+                className={`text-[${appPrimaryColor}] px-4 py-2 rounded`}
+                onClick={() => sendMessage(room)}
+              >
+                <PaperAirplaneIcon className="h-6 w-6" />
+              </button>
             </div>
           </div>
+        ) : (
+          <main className="flex-1 flex flex-col justify-center items-center bg-gray-50">
+            <h1 className="text-4xl font-bold mb-4 text-center">
+              Select a Channel
+            </h1>
+            <p className="text-lg text-gray-600 text-center">
+              Choose a channel from the list to start collaborating
+            </p>
+          </main>
+        )}
+      </div>
 
-          <Button 
-            onClick={createChannel}
-            disabled={!channelName.trim()}
-            className="w-full"
-          >
-            Create Channel
-          </Button>
-        </div>
-      </Modal>
-      
+      <CreateChannelModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreateChannel={handleCreateChannel}
+        activeFilteredMembers={acitveFilteredMembers}
+      />
+
+    {selectedChannel && (
+            <UpdateChannelModal
+              isOpen={isUpdateModalOpen}
+              onClose={() => setIsUpdateModalOpen(false)}
+              onUpdateChannel={handleUpdateChannel}
+              activeFilteredMembers={acitveFilteredMembers}
+              currentChannel={{
+                name: selectedChannel.label,
+                isPublic: selectedChannel.isPublic,
+                members: acitveMembers
+                  .filter(member => member.id !== userWorkspaceData.id)
+                  .map(member => member.id.toString())
+              }}
+            />
+          )}
       <Toaster />
     </div>
   );

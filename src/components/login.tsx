@@ -24,8 +24,13 @@ interface Workspace {
   deletedAt: null | string;
 }
 
+interface UserWorkspace {
+  id: number;
+}
+
 interface AuthMeResponse {
   data: {
+    userWorkspace: UserWorkspace;
     user: User;
     workspace: Workspace;
   };
@@ -97,6 +102,7 @@ const Login: React.FC = () => {
         axios.defaults.headers.common['Authorization'] = `${accessToken}`;
         try {
           const authMeData = await fetchAuthMe(accessToken);
+          localStorage.setItem('userWorkspaceData', JSON.stringify(authMeData.data.userWorkspace));
           localStorage.setItem('userData', JSON.stringify(authMeData.data.user));
           localStorage.setItem('workspaceData', JSON.stringify(authMeData.data.workspace));
           const activeWorkspace = await fetchActiveWorkspace(accessToken);

@@ -44,6 +44,7 @@ const Chats: React.FC = () => {
   const [messagesPage, setMessagesPage] = useState(1);
   const [socket, setSocket] = useState<any>(null);
 
+  const userWorkspaceData = JSON.parse(localStorage.getItem("userWorkspaceData") || "{}");
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
   const workspaceData = JSON.parse(
     localStorage.getItem("workspaceData") || "{}"
@@ -183,6 +184,7 @@ const Chats: React.FC = () => {
         socket.emit("send_message", {
           roomId: room.id,
           body: newMessage,
+          senderId: userWorkspaceData.id
         });
         
         setNewMessage("");
