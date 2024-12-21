@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { backendBaseUrl } from "../../config";
-import { IssueTypeEnum } from "../../enum";
+import { IssueTypeEnum, PriorityEnum } from "../../enum";
 import { toast } from "react-toastify";
 
 interface AddIssueModalProps {
@@ -20,6 +20,8 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<IssueTypeEnum>(IssueTypeEnum.TASK);
+  const [priority, setPriority] = useState<PriorityEnum>(PriorityEnum.LOW);
+  const [estimatedPoints, setEstimatedPoints] = useState<number>(1);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +35,14 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
         description: string;
         type: IssueTypeEnum;
         sprintId?: number; // Optional sprintId
+        estimatedPoints: number;
+        priority: PriorityEnum;
       } = {
         title,
         description,
         type,
+        estimatedPoints,
+        priority,
       };
 
       if (activeSprint && activeSprint.id) {
@@ -120,6 +126,46 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="priority"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Priority
+            </label>
+            <select
+              id="priority"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as PriorityEnum)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8"
+            >
+              {Object.values(PriorityEnum).map((issueType) => (
+                <option key={issueType} value={issueType}>
+                  {issueType.toLocaleLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="estimatedPoints"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Estimated Point
+            </label>
+            <input
+              id="estimatedPoints"
+              value={estimatedPoints}
+              type="number"
+              min = "1"
+              max = "13"
+              onChange={(e) => setEstimatedPoints(parseFloat(e.target.value) as number)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8"
+            >
+            </input>
           </div>
 
           <div className="flex justify-end space-x-2">

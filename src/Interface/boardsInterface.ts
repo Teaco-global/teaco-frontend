@@ -1,4 +1,4 @@
-import { IssueTypeEnum } from "../enum";
+import { IssueTypeEnum, PriorityEnum } from "../enum";
 
 export interface Column {
   id: string;
@@ -13,4 +13,6 @@ export interface Issue {
   description: string | null;
   columnId: number | null;
   type: IssueTypeEnum;
+  priority: PriorityEnum;
+  estimatedPoints: number;
 }

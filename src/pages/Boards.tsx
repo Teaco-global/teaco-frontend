@@ -12,7 +12,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { backendBaseUrl } from "../config";
 import "react-toastify/dist/ReactToastify.css";
 import { Column, Issue } from "../Interface";
-import { IssueTypeEnum } from "../enum";
+import { IssueTypeEnum, PriorityEnum } from "../enum";
 import AddIssueModal from "./modal/AddIssueModal";
 import { differenceInDays } from "date-fns";
 import { Tooltip } from "react-tooltip";
@@ -23,6 +23,111 @@ import { CheckIcon } from "@heroicons/react/24/outline";
 <div>
   <Toaster />
 </div>;
+
+
+// Weight configuration for different factors
+const WEIGHTS = {
+  priority: {
+    HIGH: 0.5,    // 50% weight for high priority
+    MEDIUM: 0.3,  // 30% weight for medium priority
+    LOW: 0.2      // 20% weight for low priority
+  },
+  type: {
+    // Critical issues (highest weight)
+    BUG: 0.45,         // 45% - Critical issues affecting functionality
+    SECURITY: 0.45,    // 45% - Security vulnerabilities
+    
+    // Core development (high weight)
+    FEATURE: 0.40,     // 40% - New features
+    PERFORMANCE: 0.35, // 35% - Performance improvements
+    
+    // Important improvements (medium-high weight)
+    UX: 0.30,         // 30% - User experience improvements
+    ENHANCEMENT: 0.30, // 30% - General enhancements
+    
+    // Infrastructure (medium weight)
+    DEPLOYMENT: 0.25,  // 25% - Deployment related
+    CI_CD: 0.25,      // 25% - CI/CD pipeline
+    TESTING: 0.25,    // 25% - Testing improvements
+    
+    // Code quality (medium-low weight)
+    REFACTOR: 0.20,   // 20% - Code refactoring
+    
+    // Support and maintenance (lower weight)
+    SUPPORT: 0.15,    // 15% - User support issues
+    QUESTION: 0.15,   // 15% - Questions and clarifications
+    DOCUMENTATION: 0.15, // 15% - Documentation updates
+    
+    // Routine tasks (lowest weight)
+    TASK: 0.10,       // 10% - General tasks
+    CHORE: 0.10,      // 10% - Routine chores
+    
+    // Default
+    UNCATEGORIZED: 0.05 // 5% - Uncategorized issues
+  },
+  points: 0.3         // 30% weight for story points
+};
+
+// Normalize story points to a 0-1 scale
+const normalizePoints = (points: number): number => {
+  const MAX_POINTS = 13; // Maximum story points (adjust as needed)
+  return Math.min(points / MAX_POINTS, 1);
+};
+
+// Calculate weighted score for a single issue
+const calculateWeightedScore = (issue: Issue): number => {
+  // Priority score (0-1 scale)
+  const priorityScore = WEIGHTS.priority[issue.priority] || 0;
+  
+  // Type score (0-1 scale)
+  const typeScore = WEIGHTS.type[issue.type] || WEIGHTS.type.UNCATEGORIZED;
+  
+  // Story points score (normalized to 0-1 scale)
+  const pointsScore = normalizePoints(issue.estimatedPoints);
+
+  // Damping factor (similar to Google's PageRank)
+  const dampingFactor = 0.85;
+
+  // Calculate final score using Google's weighted formula
+  // Score = (1-d) + d(w1*s1 + w2*s2 + w3*s3)
+  const score = (1 - dampingFactor) + dampingFactor * (
+    (priorityScore * 0.4) +  // Priority contributes 40%
+    (typeScore * 0.4) +      // Type contributes 40%
+    (pointsScore * 0.2)      // Points contribute 20%
+  );
+
+  return score;
+};
+
+// Sort issues using Google's weighted sort
+const googleWeightedSort = (issues: Issue[]): Issue[] => {
+  // Calculate scores for all issues
+  const scoredIssues = issues.map(issue => ({
+    issue,
+    score: calculateWeightedScore(issue)
+  }));
+
+  // Sort by score in descending order
+  scoredIssues.sort((a, b) => b.score - a.score);
+
+  // Return sorted issues
+  return scoredIssues.map(item => item.issue);
+};
+
+// Apply sorting to all columns
+const sortColumnIssues = (columns: Column[]): Column[] => {
+  return columns.map(column => ({
+    ...column,
+    issues: column.issues ? googleWeightedSort(column.issues) : []
+  }));
+};
+
+// Helper function to get relative importance between two issues
+const getRelativeImportance = (issue1: Issue, issue2: Issue): number => {
+  const score1 = calculateWeightedScore(issue1);
+  const score2 = calculateWeightedScore(issue2);
+  return score1 - score2;
+};
 
 const Boards: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -95,8 +200,8 @@ const Boards: React.FC = () => {
         const issues = activeSprintData?.issues || [];
         const updatedColumns = fetchedColumns.map((column: Column) => ({
           ...column,
-          issues: issues.filter(
-            (issue: Issue) => issue.columnId === Number(column.id)
+          issues: googleWeightedSort(
+            issues.filter((issue: Issue) => issue.columnId === Number(column.id))
           ),
         }));
 
@@ -145,7 +250,10 @@ const Boards: React.FC = () => {
       );
       const [movedIssue] = sourceColumn!.issues!.splice(source.index, 1);
       movedIssue.columnId = Number(destination.droppableId);
-      destColumn!.issues!.splice(destination.index, 0, movedIssue);
+      
+      // Add issue to destination column and apply Google's weighted sort
+      destColumn!.issues!.push(movedIssue);
+      destColumn!.issues = googleWeightedSort(destColumn!.issues!);
 
       setColumns(newColumns);
       toast.success("Issue moved successfully!");
@@ -258,6 +366,23 @@ const Boards: React.FC = () => {
                           }`}
                         >
                           {issue.type.toLocaleLowerCase()}
+                        </span>
+                        <span
+                          className={`inline-block rounded-full mx-2 px-2 py-1 text-xs font-normal text-white ${
+                            issue.priority === PriorityEnum.HIGH
+                              ? "bg-red-800"
+                              : issue.priority === PriorityEnum.LOW
+                              ? "bg-blue-800"
+                              : "bg-orange-800"
+                          }`}
+                        >
+                          {issue.priority.toLocaleLowerCase()}
+                        </span>
+
+                        <span
+                          className={`inline-block rounded-full mx-2 px-2 py-1 text-xs font-normal text-black bg-gray-200`}
+                        >
+                          {issue.estimatedPoints}
                         </span>
                       </div>
                     )}

@@ -3,12 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import TopBar from '../components/TopBar';
+import TopBar from "../components/TopBar";
 import Sidebar from "../components/SideBar";
 import AddIssueModal from "./modal/AddIssueModal";
 import { backendBaseUrl } from "../config";
 import { Issue } from "../Interface";
-import { IssueTypeEnum } from "../enum";
+import { IssueTypeEnum, PriorityEnum } from "../enum";
 import StartSprintModal from "./modal/StartSprintModal";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import IssueModal from "./modal/IssueModal";
@@ -203,8 +203,11 @@ const Backlogs: React.FC = () => {
             SCRUM-{issue.issueCount}
           </span>
         </h3>
+        <div className="py-2">
+          <h3 className="text-lg font-medium mr-2">{issue.title}</h3>
+        </div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center"> 
             <span
               className={`inline-block rounded-full px-2 py-1 text-xs font-medium text-white ${
                 issue.type === IssueTypeEnum.FEATURE
@@ -243,7 +246,22 @@ const Backlogs: React.FC = () => {
             >
               {issue.type.toLocaleLowerCase()}
             </span>
-            <h3 className="text-lg font-medium mr-2">{issue.title}</h3>
+            <span
+              className={`inline-block rounded-full mx-2 px-2 py-1 text-xs font-normal text-white ${
+                issue.priority === PriorityEnum.HIGH
+                  ? "bg-red-800"
+                  : issue.priority === PriorityEnum.LOW
+                  ? "bg-blue-800"
+                  : "bg-orange-800"
+              }`}
+            >
+              {issue.priority.toLocaleLowerCase()}
+            </span>
+            <span
+              className={`inline-block rounded-full mx-2 px-2 py-1 text-xs font-normal text-black bg-gray-200`}
+            >
+              {issue.estimatedPoints}
+            </span>
           </div>
           <button
             onClick={() =>

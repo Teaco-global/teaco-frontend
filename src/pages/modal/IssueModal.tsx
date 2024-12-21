@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { backendBaseUrl } from "../../config";
-import { IssueTypeEnum } from "../../enum";
+import { IssueTypeEnum, PriorityEnum } from "../../enum";
 import { toast } from "react-toastify";
 
 interface IssueDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  issue: any; // Replace with more specific type if possible
+  issue: any;
   projectId: string;
   onIssueUpdate?: () => void;
 }
@@ -25,6 +25,10 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
   const [type, setType] = useState<IssueTypeEnum>(
     issue?.type || IssueTypeEnum.TASK
   );
+  const [priority, setPriority] = useState<PriorityEnum>(
+    issue?.priority || PriorityEnum.LOW 
+  );
+  const [estimatedPoints, setestimatedPoints] = useState<number>(1);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +42,8 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
           title,
           description,
           type,
+          priority,
+          estimatedPoints
         },
         {
           headers: {
@@ -157,6 +163,42 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Priority
+            </label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as PriorityEnum)}
+              disabled={!isEditing}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              {Object.values(PriorityEnum).map((priorityLevel) => (
+                <option key={priorityLevel} value={priorityLevel}>
+                  {priorityLevel.toLocaleLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Estimated Point
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="13"
+              value={estimatedPoints}
+              onChange={(e) => setestimatedPoints(parseFloat(e.target.value) as number)}
+              disabled={!isEditing}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+            </input>
           </div>
 
           {isEditing && (

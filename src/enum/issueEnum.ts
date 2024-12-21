@@ -16,3 +16,9 @@ export enum IssueTypeEnum {
   CI_CD = "CI_CD",
   UNCATEGORIZED = "UNCATEGORIZED",
 }
+
+export enum PriorityEnum {
+  HIGH = "HIGH",
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+}
