@@ -13,6 +13,9 @@ import {
 } from "@heroicons/react/24/outline";
 import InviteMemberModal from "../pages/modal/InviteMemberModal";
 
+const userWorkspaceData = JSON.parse(localStorage.getItem("userWorkspaceData") || "{}");
+console.log(userWorkspaceData)
+
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -49,7 +52,12 @@ const Sidebar: React.FC = () => {
             {item.name === "Invite" ? (
               <button
                 onClick={handleInvite}
-                className="flex items-center gap-4 text-left py-3 pl-4 rounded-md hover:text-[#0D00A8]"
+                disabled={userWorkspaceData.userWorkspaceRoles[0].role.slug === "member"}
+                className={`flex items-center gap-4 text-left py-3 pl-4 rounded-md ${
+                  userWorkspaceData.userWorkspaceRoles[0].role.slug === "member"
+                  ? "cursor-not-allowed text-gray-400"
+                  : "hover:text-[#0D00A8]"
+                }`}
               >
                 {item.icon}
                 {item.name}

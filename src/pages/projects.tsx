@@ -4,8 +4,12 @@ import Sidebar from "../components/SideBar";
 import axios from "axios";
 import { backendBaseUrl } from "../config";
 import CreateProjectModal from "../components/CreateProjectModal";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const userWorkspaceData = JSON.parse(
+  localStorage.getItem("userWorkspaceData") || "{}"
+);
 
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<any[]>([]);
@@ -14,22 +18,27 @@ const Projects: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
 
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-  const workspaceData = JSON.parse(localStorage.getItem("workspaceData") || "{}");
+  const workspaceData = JSON.parse(
+    localStorage.getItem("workspaceData") || "{}"
+  );
 
   const userName = userData.name || "";
   const workspaceName = workspaceData.label || "";
   const accessToken = localStorage.getItem("accessToken");
-  const workspaceSecret = localStorage.getItem("x-workspace-secret-id")
+  const workspaceSecret = localStorage.getItem("x-workspace-secret-id");
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axios.get(`${backendBaseUrl}/teaco/api/v1/project`, {
-          headers: {
-            Authorization: `${accessToken}`,
-            'x-workspace-secret-id': `${workspaceSecret}`,
-          },
-        });
+        const response = await axios.get(
+          `${backendBaseUrl}/teaco/api/v1/project`,
+          {
+            headers: {
+              Authorization: `${accessToken}`,
+              "x-workspace-secret-id": `${workspaceSecret}`,
+            },
+          }
+        );
         setProjects(response.data.data || []);
         setFilteredProjects(response.data.data || []);
       } catch (error) {
@@ -54,13 +63,17 @@ const Projects: React.FC = () => {
 
   const handleCreateProject = async (data: any) => {
     try {
-      const response = await axios.post(`${backendBaseUrl}/teaco/api/v1/project/create`, data, {
-        headers: {
-          Authorization: `${accessToken}`,
-          'x-workspace-secret-id': `${workspaceSecret}`,
-        },
-      });
-      toast.success('Project created successfully')
+      const response = await axios.post(
+        `${backendBaseUrl}/teaco/api/v1/project/create`,
+        data,
+        {
+          headers: {
+            Authorization: `${accessToken}`,
+            "x-workspace-secret-id": `${workspaceSecret}`,
+          },
+        }
+      );
+      toast.success("Project created successfully");
       setProjects((prev) => [...prev, response.data.data]);
       setShowModal(false);
     } catch (error) {
@@ -71,15 +84,20 @@ const Projects: React.FC = () => {
 
   const handleDeleteProject = async (id: string) => {
     try {
-      const deletProjectResponse = await axios.delete(`${backendBaseUrl}/teaco/api/v1/project/${id}`, {
-        headers: {
-          Authorization: `${accessToken}`,
-          'x-workspace-secret-id': `${workspaceSecret}`,
-        },
-      });
+      const deletProjectResponse = await axios.delete(
+        `${backendBaseUrl}/teaco/api/v1/project/${id}`,
+        {
+          headers: {
+            Authorization: `${accessToken}`,
+            "x-workspace-secret-id": `${workspaceSecret}`,
+          },
+        }
+      );
       toast.success(deletProjectResponse.data.message);
       setProjects((prev) => prev.filter((project) => project.id !== id));
-      setFilteredProjects((prev) => prev.filter((project) => project.id !== id));
+      setFilteredProjects((prev) =>
+        prev.filter((project) => project.id !== id)
+      );
     } catch (error) {
       console.error("Error deleting project:", error);
       toast.error("Error deleting project.");
@@ -89,9 +107,9 @@ const Projects: React.FC = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      year: "numeric",
+      month: "long",
+      day: "numeric",
       // hour: '2-digit',
       // minute: '2-digit'
     });
@@ -134,7 +152,7 @@ const Projects: React.FC = () => {
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-6">
-        {projects.length === 0 ? (
+          {projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
               <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 You don’t have any projects yet.
@@ -143,8 +161,18 @@ const Projects: React.FC = () => {
                 Kickstart by creating your first project
               </p>
               <button
-                className="bg-[#0D00A8] text-white px-4 py-2 rounded"
+                className={`bg-[#0D00A8] text-white px-4 py-2 rounded 
+                  ${
+                    userWorkspaceData.userWorkspaceRoles[0].role.slug ===
+                    "member"
+                      ? "opacity-50"
+                      : ""
+                  }
+                `}
                 onClick={() => setShowModal(true)}
+                disabled={
+                  userWorkspaceData.userWorkspaceRoles[0].role.slug === "member"
+                }
               >
                 Create Project +
               </button>
@@ -157,74 +185,123 @@ const Projects: React.FC = () => {
             </div>
           ) : (
             <>
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-normal">Projects</h1>
-            
-            <button
-              className="bg-[#0D00A8] text-white px-4 py-2 rounded"
-              onClick={() => setShowModal(true)}
-            >
-              Create Project +
-            </button>
-          </div>
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search projects..."
-              className="w-full px-4 py-2 border rounded"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <table className="min-w-full bg-white rounded-lg">
-            <thead className="bg-[##e7e5ff]">
-              <tr>
-                <th className="text-left py-3 px-4 font-semibold text-sm">Name</th>
-                <th className="text-left py-3 px-4 font-semibold text-sm">Description</th>
-                <th className="text-left py-3 px-4 font-semibold text-sm">Status</th>
-                <th className="text-left py-3 px-4 font-semibold text-sm">Created At</th>
-                <th className="py-3 px-4 font-semibold text-sm">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProjects.length > 0 ? (
-                filteredProjects.map((project, index) => (
-                  <tr
-                    key={project.id}
-                    className={`border-t ${
-                      index % 2 === 0 ? "bg-white" : "bg-white"
-                    }`}
-                  >
-                    <td className="py-3 px-4 text-[#0D00A8]">
-                    <a href={`/projects/${project.id}/boards`} className="hover:underline">
-                      {project.name}
-                    </a>
-                    </td>
-                    <td className="py-3 px-4">{project.description || "N/A"}</td>
-                    <td className="py-3 px-4">{project.status}</td>
-                    <td className="py-3 px-4">{formatDate(project.createdAt)}</td>
-                    <td className="py-3 px-4 text-center">
-                      <ThreeDotsMenu projectId={project.id} />
-                    </td>
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-xl font-normal">Projects</h1>
+
+                <button
+                  className={`bg-[#0D00A8] text-white px-4 py-2 rounded 
+                ${
+                  userWorkspaceData.userWorkspaceRoles[0].role.slug === "member"
+                    ? "opacity-50"
+                    : ""
+                }
+                `}
+                  onClick={() => setShowModal(true)}
+                  disabled={
+                    userWorkspaceData.userWorkspaceRoles[0].role.slug ===
+                    "member"
+                  }
+                >
+                  Create Project +
+                </button>
+              </div>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  className="w-full px-4 py-2 border rounded"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <table className="min-w-full bg-white rounded-lg">
+                <thead className="bg-[##e7e5ff]">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">
+                      Name
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">
+                      Description
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">
+                      Status
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-sm">
+                      Created At
+                    </th>
+                    <th
+                      className={`py-3 px-4 font-semibold text-sm 
+                  ${
+                    userWorkspaceData.userWorkspaceRoles[0].role.slug ===
+                    "member"
+                      ? "hidden"
+                      : ""
+                  }
+                  `}
+                    >
+                      Actions
+                    </th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="text-center py-3 px-4 text-gray-500"
-                  >
-                    No projects found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          </>
+                </thead>
+                <tbody>
+                  {filteredProjects.length > 0 ? (
+                    filteredProjects.map((project, index) => (
+                      <tr
+                        key={project.id}
+                        className={`border-t ${
+                          index % 2 === 0 ? "bg-white" : "bg-white"
+                        }`}
+                      >
+                        <td className="py-3 px-4 text-[#0D00A8]">
+                          <a
+                            href={`/projects/${project.id}/boards`}
+                            className="hover:underline"
+                          >
+                            {project.name}
+                          </a>
+                        </td>
+                        <td className="py-3 px-4">
+                          {project.description || "N/A"}
+                        </td>
+                        <td className="py-3 px-4">{project.status}</td>
+                        <td className="py-3 px-4">
+                          {formatDate(project.createdAt)}
+                        </td>
+                        <td
+                          className={`py-3 px-4 text-center 
+                ${
+                  userWorkspaceData.userWorkspaceRoles[0].role.slug === "member"
+                    ? "hidden"
+                    : ""
+                }
+                `}
+                        >
+                          <ThreeDotsMenu projectId={project.id} />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="text-center py-3 px-4 text-gray-500"
+                      >
+                        No projects found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </>
           )}
         </main>
       </div>
-      {showModal && <CreateProjectModal onClose={() => setShowModal(false)} onSubmit={handleCreateProject} />}
+      {showModal && (
+        <CreateProjectModal
+          onClose={() => setShowModal(false)}
+          onSubmit={handleCreateProject}
+        />
+      )}
       <ToastContainer />
     </div>
   );

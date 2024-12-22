@@ -114,21 +114,6 @@ const googleWeightedSort = (issues: Issue[]): Issue[] => {
   return scoredIssues.map(item => item.issue);
 };
 
-// Apply sorting to all columns
-const sortColumnIssues = (columns: Column[]): Column[] => {
-  return columns.map(column => ({
-    ...column,
-    issues: column.issues ? googleWeightedSort(column.issues) : []
-  }));
-};
-
-// Helper function to get relative importance between two issues
-const getRelativeImportance = (issue1: Issue, issue2: Issue): number => {
-  const score1 = calculateWeightedScore(issue1);
-  const score2 = calculateWeightedScore(issue2);
-  return score1 - score2;
-};
-
 const Boards: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const [columns, setColumns] = useState<Column[]>([]);

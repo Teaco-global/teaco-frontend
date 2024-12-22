@@ -52,19 +52,19 @@ const Home: React.FC = () => {
     { 
       id: 1, 
       project: "Marketing Website", 
-      deadline: "2024-06-15", 
+      deadline: "2025-01-15", 
       daysLeft: 7 
     },
     { 
       id: 2, 
       project: "Mobile App Redesign", 
-      deadline: "2024-06-22", 
+      deadline: "2025-01-02", 
       daysLeft: 14 
     },
     { 
       id: 3, 
       project: "Customer Portal", 
-      deadline: "2024-07-01", 
+      deadline: "2025-01-05", 
       daysLeft: 23 
     }
   ];
