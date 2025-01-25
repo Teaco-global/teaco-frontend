@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import toast, { Toaster } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import TopBar from "../components/TopBar";
 import Sidebar from "../components/SideBar";
@@ -12,6 +12,19 @@ import { IssueTypeEnum, PriorityEnum } from "../enum";
 import StartSprintModal from "./modal/StartSprintModal";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import IssueModal from "./modal/IssueModal";
+
+<div>
+  <Toaster />
+</div>;
+
+interface WorkspaceMember {
+  id: number;  // This is the userWorkspaceId
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
 
 const Backlogs: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -29,7 +42,7 @@ const Backlogs: React.FC = () => {
   const [createdSprint, setCreatedSprint] = useState<any>(null);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
-
+  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
   const navigate = useNavigate();
 
   const userData = JSON.parse(localStorage.getItem("userData") || "{}");
@@ -41,6 +54,28 @@ const Backlogs: React.FC = () => {
   const workspaceName = workspaceData.label || "";
   const accessToken = localStorage.getItem("accessToken");
   const workspaceSecret = localStorage.getItem("x-workspace-secret-id");
+
+  useEffect(() => {
+    const fetchWorkspaceMembers = async () => {
+      try {
+        const response = await axios.get(
+          `${backendBaseUrl}/teaco/api/v1/user-workspace/active-workspace-members`,
+          {
+            headers: {
+              Authorization: `${accessToken}`,
+              "x-workspace-secret-id": `${workspaceSecret}`,
+            },
+          }
+        );
+        setWorkspaceMembers(response.data.data);
+      } catch (error) {
+        console.error("Error fetching workspace members:", error);
+        toast.error("Failed to load workspace members.");
+      }
+    };
+
+    fetchWorkspaceMembers();
+  }, [accessToken, workspaceSecret]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,7 +135,7 @@ const Backlogs: React.FC = () => {
     if (createdSprint) {
       setIsModalOpen(true);
     } else {
-      toast.info("Create a sprint first before adding issues.");
+      toast.error("Create a sprint first before adding issues.");
     }
   };
 
@@ -189,6 +224,9 @@ const Backlogs: React.FC = () => {
     isInSprint,
     onMove,
   }) => {
+    const assignedUser = workspaceMembers.find(
+      member => member.id === issue.assignedToId
+    );
     return (
       <div
         className="p-5 bg-white rounded-lg shadow hover:bg-gray-100"
@@ -403,6 +441,7 @@ const Backlogs: React.FC = () => {
                   isOpen={isModalOpen}
                   onClose={handleCloseModal}
                   projectId={projectId || ""}
+                  workspaceMembers={workspaceMembers}
                 />
               )}
               {isStartSprintModalOpen && createdSprint && (
@@ -426,10 +465,50 @@ const Backlogs: React.FC = () => {
           }}
           issue={selectedIssue}
           projectId={projectId!}
+          workspaceMembers={workspaceMembers}
+          onIssueUpdate={() => {
+            // Refresh the data when an issue is updated
+            const fetchData = async () => {
+              try {
+                const backlogResponse = await axios.get(
+                  `${backendBaseUrl}/teaco/api/v1/project/${projectId}/backlogs`,
+                  {
+                    headers: {
+                      Authorization: `${accessToken}`,
+                      "x-workspace-secret-id": `${workspaceSecret}`,
+                    },
+                  }
+                );
+                const sprintResponse = await axios.get(
+                  `${backendBaseUrl}/teaco/api/v1/project/${projectId}/sprints/created`,
+                  {
+                    headers: {
+                      Authorization: `${accessToken}`,
+                      "x-workspace-secret-id": `${workspaceSecret}`,
+                    },
+                  }
+                );
+
+                const fetchedBacklogIssues = backlogResponse.data.data || [];
+                const fetchedSprintData = sprintResponse.data.data;
+
+                setBacklogIssues(fetchedBacklogIssues);
+                setBacklogIssuesCount(fetchedBacklogIssues.length);
+
+                setSprintIssues(fetchedSprintData?.issues || []);
+                setSprintIssuesCount(fetchedSprintData.issues.length);
+              } catch (error) {
+                console.error("Error fetching data:", error);
+                toast.error("Failed to refresh issue data.");
+              }
+            };
+
+            fetchData();
+          }}
         />
       )}
 
-      <ToastContainer />
+      <Toaster />
     </div>
   );
 };

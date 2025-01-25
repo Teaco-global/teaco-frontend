@@ -4,11 +4,21 @@ import { backendBaseUrl } from "../../config";
 import { IssueTypeEnum, PriorityEnum } from "../../enum";
 import { toast } from "react-toastify";
 
+interface WorkspaceMember {
+  id: number;  // This is the userWorkspaceId
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
 interface AddIssueModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectId: string;
   activeSprint?: any;
+  workspaceMembers: WorkspaceMember[];
 }
 
 const AddIssueModal: React.FC<AddIssueModalProps> = ({
@@ -16,12 +26,14 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
   onClose,
   projectId,
   activeSprint,
+  workspaceMembers
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<IssueTypeEnum>(IssueTypeEnum.TASK);
   const [priority, setPriority] = useState<PriorityEnum>(PriorityEnum.LOW);
   const [estimatedPoints, setEstimatedPoints] = useState<number>(1);
+  const [assignedToId, setAssignedToId] = useState<number | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +46,10 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
         title: string;
         description: string;
         type: IssueTypeEnum;
-        sprintId?: number; // Optional sprintId
+        sprintId?: number;
         estimatedPoints: number;
         priority: PriorityEnum;
+        assignedToId?: number;
       } = {
         title,
         description,
@@ -47,6 +60,10 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
 
       if (activeSprint && activeSprint.id) {
         data.sprintId = Number(activeSprint.id);
+      }
+
+      if (assignedToId) {
+        data.assignedToId = assignedToId;
       }
 
       await axios.post(
@@ -109,6 +126,28 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
 
           <div>
             <label
+              htmlFor="assignee"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Assignee
+            </label>
+            <select
+              id="assignee"
+              value={assignedToId || ""}
+              onChange={(e) => setAssignedToId(Number(e.target.value) || null)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8]"
+            >
+              <option value="">Unassigned</option>
+              {workspaceMembers.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.user.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
               htmlFor="type"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
@@ -118,7 +157,7 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
               id="type"
               value={type}
               onChange={(e) => setType(e.target.value as IssueTypeEnum)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8]"
             >
               {Object.values(IssueTypeEnum).map((issueType) => (
                 <option key={issueType} value={issueType}>
@@ -139,11 +178,11 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
               id="priority"
               value={priority}
               onChange={(e) => setPriority(e.target.value as PriorityEnum)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8]"
             >
-              {Object.values(PriorityEnum).map((issueType) => (
-                <option key={issueType} value={issueType}>
-                  {issueType.toLocaleLowerCase()}
+              {Object.values(PriorityEnum).map((priorityType) => (
+                <option key={priorityType} value={priorityType}>
+                  {priorityType.toLocaleLowerCase()}
                 </option>
               ))}
             </select>
@@ -160,12 +199,11 @@ const AddIssueModal: React.FC<AddIssueModalProps> = ({
               id="estimatedPoints"
               value={estimatedPoints}
               type="number"
-              min = "1"
-              max = "13"
-              onChange={(e) => setEstimatedPoints(parseFloat(e.target.value) as number)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8"
-            >
-            </input>
+              min="1"
+              max="13"
+              onChange={(e) => setEstimatedPoints(parseFloat(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0D00A8]"
+            />
           </div>
 
           <div className="flex justify-end space-x-2">

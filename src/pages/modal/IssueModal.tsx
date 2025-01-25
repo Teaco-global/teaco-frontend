@@ -4,12 +4,22 @@ import { backendBaseUrl } from "../../config";
 import { IssueTypeEnum, PriorityEnum } from "../../enum";
 import { toast } from "react-toastify";
 
+interface WorkspaceMember {
+  id: number;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
 interface IssueDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   issue: any;
   projectId: string;
   onIssueUpdate?: () => void;
+  workspaceMembers: WorkspaceMember[];
 }
 
 const IssueModal: React.FC<IssueDetailsModalProps> = ({
@@ -18,6 +28,7 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
   issue,
   projectId,
   onIssueUpdate,
+  workspaceMembers,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(issue?.title || "");
@@ -28,7 +39,8 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
   const [priority, setPriority] = useState<PriorityEnum>(
     issue?.priority || PriorityEnum.LOW 
   );
-  const [estimatedPoints, setestimatedPoints] = useState<number>(1);
+  const [estimatedPoints, setEstimatedPoints] = useState<number>(issue?.estimatedPoints || 1);
+  const [assignedToId, setAssignedToId] = useState<number | null>(issue?.assignedToId || null);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +55,8 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
           description,
           type,
           priority,
-          estimatedPoints
+          estimatedPoints,
+          assignedToId
         },
         {
           headers: {
@@ -148,6 +161,26 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              Assignee
+            </label>
+            <select
+              value={assignedToId || ""}
+              onChange={(e) => setAssignedToId(Number(e.target.value) || null)}
+              disabled={!isEditing}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                disabled:bg-gray-100 disabled:cursor-not-allowed"
+            >
+              <option value="">Unassigned</option>
+              {workspaceMembers.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.user.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Issue Type
             </label>
             <select
@@ -193,12 +226,11 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
               min="1"
               max="13"
               value={estimatedPoints}
-              onChange={(e) => setestimatedPoints(parseFloat(e.target.value) as number)}
+              onChange={(e) => setEstimatedPoints(parseFloat(e.target.value))}
               disabled={!isEditing}
               className="w-full px-3 py-2 border border-gray-300 rounded-md 
                 disabled:bg-gray-100 disabled:cursor-not-allowed"
-            >
-            </input>
+            />
           </div>
 
           {isEditing && (
@@ -210,6 +242,9 @@ const IssueModal: React.FC<IssueDetailsModalProps> = ({
                   setTitle(issue.title);
                   setDescription(issue.description);
                   setType(issue.type);
+                  setPriority(issue.priority);
+                  setEstimatedPoints(issue.estimatedPoints);
+                  setAssignedToId(issue.assignedToId);
                 }}
                 className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               >

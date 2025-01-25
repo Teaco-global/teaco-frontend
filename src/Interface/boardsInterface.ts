@@ -15,4 +15,5 @@ export interface Issue {
   type: IssueTypeEnum;
   priority: PriorityEnum;
   estimatedPoints: number;
+  assignedToId: number;
 }

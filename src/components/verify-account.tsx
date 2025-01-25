@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 
 import teacoLogo from '../assets/teaco.png';
 import { backendBaseUrl } from '../config';
+
+import toast, { Toaster } from "react-hot-toast";
+
+<div>
+  <Toaster />
+</div>;
 
 interface LocationState {
   email: string;
@@ -66,7 +70,7 @@ const VerifyEmail: React.FC = () => {
         navigate('/login');
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.error?.message || 'Failed to verify OTP');
+      toast.error(error?.response?.data?.error || 'Failed to verify OTP');
     } finally {
       setLoading(false);
     }
@@ -117,7 +121,7 @@ const VerifyEmail: React.FC = () => {
           </button>
         </p>
       </div>
-      <ToastContainer />
+      <Toaster />
     </div>
   );
 };

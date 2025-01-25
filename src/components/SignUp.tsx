@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from 'react-router-dom';
 import teacoLogo from '../assets/teaco.png';
 import { backendBaseUrl } from '../config';
+
+<div>
+  <Toaster />
+</div>;
 
 const SignUpForm: React.FC = () => {
   const [name, setName] = useState('');
@@ -135,7 +138,7 @@ const SignUpForm: React.FC = () => {
           </button>
         </form>
       </div>
-      <ToastContainer />
+      <Toaster />
     </div>
   );
 };

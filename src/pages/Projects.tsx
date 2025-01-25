@@ -4,8 +4,11 @@ import Sidebar from "../components/SideBar";
 import axios from "axios";
 import { backendBaseUrl } from "../config";
 import CreateProjectModal from "../components/CreateProjectModal";
-import { ToastContainer, toast } from "react-toastify";
+import toast, { Toaster } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
+<div>
+  <Toaster />
+</div>;
 
 const userWorkspaceData = JSON.parse(
   localStorage.getItem("userWorkspaceData") || "{}"
@@ -139,6 +142,12 @@ const Projects: React.FC = () => {
               className="block w-full px-4 py-2 text-left text-black hover:bg-gray-100"
             >
               Mark completed
+            </button>
+            <button
+              onClick={() => {}}
+              className="block w-full px-4 py-2 text-left text-black hover:bg-gray-100"
+            >
+              Assignees
             </button>
           </div>
         )}
@@ -302,7 +311,7 @@ const Projects: React.FC = () => {
           onSubmit={handleCreateProject}
         />
       )}
-      <ToastContainer />
+      <Toaster />
     </div>
   );
 };

@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import teacoLogo from '../assets/teaco.png';
+import toast, { Toaster } from "react-hot-toast";
 import { backendBaseUrl } from '../config';
+
+<div>
+  <Toaster />
+</div>;
 
 interface User {
   id: number;
@@ -117,7 +121,6 @@ const Login: React.FC = () => {
             },
           });
         } catch (workspaceError) {
-          console.error('error');
           toast.error('Failed to complete workspace setup');
           setError('Failed to complete workspace setup');
           localStorage.removeItem('accessToken');
@@ -125,8 +128,9 @@ const Login: React.FC = () => {
         }
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.error?.message || 'An error occurred');
-      setError(error?.response?.data?.error?.message || 'An error occurred');
+      console.log(error?.response?.data?.error)
+      toast.error(error?.response?.data?.error || 'An error occurred');
+      setError(error?.response?.data?.error || 'An error occurred');
     }
   };
 
@@ -172,7 +176,7 @@ const Login: React.FC = () => {
           </div>
         </form>
       </div>
-      <ToastContainer />
+      <Toaster />
     </div>
   );
 };

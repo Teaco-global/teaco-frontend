@@ -74,7 +74,7 @@ const normalizePoints = (points: number): number => {
   return Math.min(points / MAX_POINTS, 1);
 };
 
-// Calculate weighted score for a single issue
+// Calculate weighted score  for a single issue
 const calculateWeightedScore = (issue: Issue): number => {
   // Priority score (0-1 scale)
   const priorityScore = WEIGHTS.priority[issue.priority] || 0;
@@ -114,6 +114,15 @@ const googleWeightedSort = (issues: Issue[]): Issue[] => {
   return scoredIssues.map(item => item.issue);
 };
 
+interface WorkspaceMember {
+  id: number;  // This is the userWorkspaceId
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
 const Boards: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const [columns, setColumns] = useState<Column[]>([]);
@@ -126,6 +135,9 @@ const Boards: React.FC = () => {
     useState<boolean>(false);
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
+  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [showMemberFilter, setShowMemberFilter] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
@@ -138,6 +150,28 @@ const Boards: React.FC = () => {
   const workspaceName = workspaceData.label || "";
   const accessToken = localStorage.getItem("accessToken");
   const workspaceSecret = localStorage.getItem("x-workspace-secret-id");
+
+  useEffect(() => {
+    const fetchWorkspaceMembers = async () => {
+      try {
+        const response = await axios.get(
+          `${backendBaseUrl}/teaco/api/v1/user-workspace/active-workspace-members`,
+          {
+            headers: {
+              Authorization: `${accessToken}`,
+              "x-workspace-secret-id": `${workspaceSecret}`,
+            },
+          }
+        );
+        setWorkspaceMembers(response.data.data);
+      } catch (error) {
+        console.error("Error fetching workspace members:", error);
+        toast.error("Failed to load workspace members.");
+      }
+    };
+
+    fetchWorkspaceMembers();
+  }, [accessToken, workspaceSecret]);
 
   useEffect(() => {
     const fetchBoardData = async () => {
@@ -540,6 +574,7 @@ const Boards: React.FC = () => {
           onClose={handleCloseAddIssueModal}
           projectId={projectId!}
           activeSprint={activeSprint!}
+          workspaceMembers={workspaceMembers}
         />
       )}
 
@@ -552,6 +587,7 @@ const Boards: React.FC = () => {
           }}
           issue={selectedIssue}
           projectId={projectId!}
+          workspaceMembers={workspaceMembers}
           onIssueUpdate={() => {
             // Optional: You might want to refresh the board data after an issue update
             // You can call your fetchBoardData function here
