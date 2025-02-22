@@ -30,7 +30,7 @@ interface WorkspaceMember {
     email: string;
   };
 }
-
+// Algorithm starts here
 const WEIGHTS = {
   priority: {
     HIGH: 0.5,
@@ -87,6 +87,8 @@ const googleWeightedSort = (issues: Issue[]): Issue[] => {
   scoredIssues.sort((a, b) => b.score - a.score);
   return scoredIssues.map(item => item.issue);
 };
+
+//Algorithm ends here
 
 const Boards: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();

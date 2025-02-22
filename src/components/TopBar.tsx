@@ -20,12 +20,8 @@ const TopBar: React.FC<TopBarProps> = ({ workspaceName, userName }) => {
       </div>
       <div className="flex items-center space-x-4">
         <span className="hidden md:inline">{userName}</span>
-        <div className="rounded-full border">
-          <img
-            src="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
-            alt="Profile"
-            className="w-6 h-6 rounded-full object-cover"
-          />
+        <div className="w-6 h-6 flex items-center justify-center rounded-full border border-white text-sm font-medium">
+          {userName.charAt(0).toUpperCase()}
         </div>
       </div>
     </header>
