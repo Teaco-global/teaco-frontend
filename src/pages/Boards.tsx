@@ -15,10 +15,12 @@ import { Column, Issue } from "../Interface";
 import { IssueTypeEnum, PriorityEnum } from "../enum";
 import AddIssueModal from "./modal/AddIssueModal";
 import { differenceInDays } from "date-fns";
-import { Tooltip } from "react-tooltip";
 import toast, { Toaster } from "react-hot-toast";
 import IssueModal from "./modal/IssueModal";
 import { CheckIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+<div>
+  <Toaster />
+</div>;
 
 interface WorkspaceMember {
   id: number;  // This is the userWorkspaceId
@@ -227,62 +229,65 @@ const Boards: React.FC = () => {
 
   const onDragEnd = async (result: DropResult) => {
     const { source, destination, draggableId } = result;
-
+  
     if (!destination) return;
     if (
-        source.droppableId === destination.droppableId.toString() &&
-        source.index === destination.index
-    )
-      return;
-
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) return;
+  
     try {
       await axios.put(
-          `${backendBaseUrl}/teaco/api/v1/project/${projectId}/issues/${draggableId}`,
-          { columnId: destination.droppableId },
-          {
-            headers: {
-              Authorization: `${accessToken}`,
-              "x-workspace-secret-id": `${workspaceSecret}`,
-            },
-          }
+        `${backendBaseUrl}/teaco/api/v1/project/${projectId}/issues/${draggableId}`,
+        { columnId: destination.droppableId },
+        {
+          headers: {
+            Authorization: `${accessToken}`,
+            "x-workspace-secret-id": `${workspaceSecret}`,
+          },
+        }
       );
-
-      const newColumns = [...columns];
-      const sourceColumn = newColumns.find(
-          (col) => col.id === source.droppableId
-      );
-      const destColumn = newColumns.find(
-          (col) => col.id === destination.droppableId
-      );
-      const [movedIssue] = sourceColumn!.issues!.splice(source.index, 1);
+  
+      const newColumns = columns.map(col => ({
+        ...col,
+        issues: [...(col.issues || [])]
+      }));
+  
+      const sourceColumn = newColumns.find(col => col.id === source.droppableId);
+      const destColumn = newColumns.find(col => col.id === destination.droppableId);
+  
+      if (!sourceColumn || !destColumn) return;
+  
+      const [movedIssue] = sourceColumn.issues!.splice(source.index, 1);
       movedIssue.columnId = Number(destination.droppableId);
-
-      destColumn!.issues!.push(movedIssue);
-      destColumn!.issues = googleWeightedSort(destColumn!.issues!);
-
+      
+      // Insert at the correct position and resort
+      destColumn.issues!.splice(destination.index, 0, movedIssue);
+      destColumn.issues = googleWeightedSort(destColumn.issues!);
+  
       setColumns(newColumns);
-
-      // Update filtered columns
-      const newFilteredColumns = [...filteredColumns];
-      const sourceFilteredColumn = newFilteredColumns.find(
-          (col) => col.id === source.droppableId
-      );
-      const destFilteredColumn = newFilteredColumns.find(
-          (col) => col.id === destination.droppableId
-      );
-
+  
+      // Update filtered columns separately
+      const newFilteredColumns = filteredColumns.map(col => ({
+        ...col,
+        issues: [...(col.issues || [])]
+      }));
+  
+      const sourceFilteredColumn = newFilteredColumns.find(col => col.id === source.droppableId);
+      const destFilteredColumn = newFilteredColumns.find(col => col.id === destination.droppableId);
+  
       if (sourceFilteredColumn && destFilteredColumn) {
         const [movedFilteredIssue] = sourceFilteredColumn.issues!.splice(source.index, 1);
         movedFilteredIssue.columnId = Number(destination.droppableId);
-        destFilteredColumn.issues!.push(movedFilteredIssue);
+        destFilteredColumn.issues!.splice(destination.index, 0, movedFilteredIssue);
         destFilteredColumn.issues = googleWeightedSort(destFilteredColumn.issues!);
       }
-
+  
       setFilteredColumns(newFilteredColumns);
       toast.success("Issue moved successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error moving issue:", error);
-      toast.error("Failed to move issue.");
+      toast.error("Failed to move issue");
     }
   };
 
@@ -340,6 +345,27 @@ const Boards: React.FC = () => {
         )}
       </div>
   );
+
+  const handleEndSprint = async () => {
+    try {
+      await axios.put(
+        `${backendBaseUrl}/teaco/api/v1/project/${projectId}/sprints/${activeSprint.id}/end`,
+        {},
+        {
+          headers: {
+            Authorization: `${accessToken}`,
+            "x-workspace-secret-id": `${workspaceSecret}`,
+          },
+        }
+      );
+      toast.success("Sprint ended successfully!");
+      navigate(`/projects/${projectId}/backlogs`);
+    } catch (error:any) {
+      const errorMessage = error?.response?.data?.message
+      console.error("Error ending sprint:", error);
+      toast.error(`${errorMessage!}`);
+    }
+  };
 
   const BoardColumn: React.FC<{ column: Column }> = ({ column }) => (
       <Droppable droppableId={column.id}>
