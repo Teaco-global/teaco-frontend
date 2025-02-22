@@ -53,7 +53,7 @@ const Home: React.FC = () => {
           <div className="flex flex-col items-center justify-center mt-10">
             <div className="text-center">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                Welcome to Your Workspace
+                Welcome to {workspaceName}
               </h2>
               {/* <p className="text-gray-600 mb-6">
                 Here's a friendly illustration to brighten up your day!

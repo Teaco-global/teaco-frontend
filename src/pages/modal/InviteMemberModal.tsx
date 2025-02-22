@@ -83,7 +83,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
                 htmlFor="name"
                 className="block mb-2 text-sm font-medium text-gray-600"
               >
-                Full Name
+                Username
               </label>
               <input
                 id="name"

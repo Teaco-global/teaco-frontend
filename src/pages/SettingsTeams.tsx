@@ -146,6 +146,9 @@ const SettingsTeams: React.FC = () => {
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
+  const userWorkspaceData = JSON.parse(localStorage.getItem("userWorkspaceData") || "{}");
+  const userRole = userWorkspaceData.userWorkspaceRoles?.[0]?.role?.label?.toLowerCase() || '';
+  console.log(userRole)
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -156,11 +159,9 @@ const SettingsTeams: React.FC = () => {
           <div className="h-full flex flex-col">
             <div className="mb-6">
               <nav className="flex items-center space-x-2 text-lg mb-10">
-                <span className="text-gray-500">Settings</span>
-                <span className="text-gray-400">/</span>
-                <span className="text-gray-900">{activeTab}</span>
+                <span className="text-gray-500">Members</span>
               </nav>
-              <div className="mb-6 flex justify-between">
+              {/* <div className="mb-6 flex justify-between">
                 <div className="flex space-x-1 mb-4">
                   <button
                     className={`px-4 py-2 rounded-lg ${
@@ -193,7 +194,7 @@ const SettingsTeams: React.FC = () => {
                     Teams
                   </button>
                 </div>
-              </div>
+              </div> */}
               <div className="text-lg font-semibold py-4">
                 Workspace Members ({totalCount})
               </div>
@@ -220,14 +221,15 @@ const SettingsTeams: React.FC = () => {
                         </td>
                         <td className="px-6 py-3 whitespace-nowrap">{member.status}</td>
                         <td className="px-6 py-3 whitespace-nowrap text-right">
-                          <button 
-                            onClick={() => openDeleteModal(member)} 
-                            className="text-red-700 hover:text-red-900"
-                          >
-                            {/* Delete */}
-                          <TrashIcon className="w-23 h-5 ml-10"/>  
-                          </button>
-                         </td>
+                          {userRole !== 'member' && (
+                            <button 
+                              onClick={() => openDeleteModal(member)} 
+                              className="text-red-700 hover:text-red-900"
+                            >
+                              <TrashIcon className="w-23 h-5 ml-10"/>  
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -10,11 +10,11 @@ import {
   UserPlusIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
+  UserGroupIcon
 } from "@heroicons/react/24/outline";
 import InviteMemberModal from "../pages/modal/InviteMemberModal";
 
 const userWorkspaceData = JSON.parse(localStorage.getItem("userWorkspaceData") || "{}");
-console.log(userWorkspaceData)
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -41,7 +41,7 @@ const Sidebar: React.FC = () => {
     // { name: "Mails", icon: <EnvelopeIcon className="h-6 w-6" /> },
     { name: "Channels", icon: <UsersIcon className="h-6 w-6" /> },
     { name: "Invite", icon: <UserPlusIcon className="h-6 w-6" /> },
-    { name: "Settings", icon: <Cog6ToothIcon className="h-6 w-6" />},
+    { name: "Members", icon: <UserGroupIcon className="h-6 w-6" />},
   ];
 
   return (

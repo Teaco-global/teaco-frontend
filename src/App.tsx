@@ -9,11 +9,8 @@ import Projects from './pages/Projects';
 import Wikis from './pages/Wikis';
 import Mails from './pages/Mails';
 import Channels from './pages/Channels';
-import Settings from './pages/SettingsProfile';
 import Boards from './pages/Boards';
 import Backlogs from './pages/Backlogs';
-import SettingsProfile from './pages/SettingsProfile';
-import SettingsWorkspace from './pages/SettingsWorkspace';
 import SettingsTeams from './pages/SettingsTeams';
 import AcceptInvitation from './pages/AcceptInvitation';
 
@@ -41,10 +38,10 @@ const App: React.FC = () => {
         <Route path="/mails" element={<PrivateRoute><Mails /></PrivateRoute>} />
         <Route path="/channels" element={<PrivateRoute><Channels /></PrivateRoute>} />
         {/* <Route path="/invite" element={<PrivateRoute><Invite /></PrivateRoute>} /> */}
-        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-        <Route path="/settings/profile" element={<PrivateRoute><SettingsProfile /></PrivateRoute>} />
+        <Route path="/members" element={<PrivateRoute><SettingsTeams /></PrivateRoute>} />
+        {/* <Route path="/settings/profile" element={<PrivateRoute><SettingsProfile /></PrivateRoute>} />
         <Route path="/settings/workspace" element={<PrivateRoute><SettingsWorkspace /></PrivateRoute>} />
-        <Route path="/settings/teams" element={<PrivateRoute><SettingsTeams /></PrivateRoute>} />
+        <Route path="/settings/teams" element={<PrivateRoute><SettingsTeams /></PrivateRoute>} /> */}
       </Routes>
     </Router>
   );

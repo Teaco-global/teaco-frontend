@@ -73,13 +73,13 @@ const SignUpForm: React.FC = () => {
         {success && <p className="text-green-500 mb-4">{success}</p>}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1">Full Name</label>
+            <label className="block mb-1">Username</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full p-2 border rounded"
-              placeholder="Your full name"
+              placeholder="Your name"
               required
             />
           </div>

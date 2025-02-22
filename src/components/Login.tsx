@@ -171,9 +171,9 @@ const Login: React.FC = () => {
           <button type="submit" className="w-1/4 py-3 bg-primary text-white font-bold rounded-lg mx-auto block">
             Log in
           </button>
-          <div className="text-center mt-4">
+          {/* <div className="text-center mt-4">
             <a href="/forgot-password" className="text-primary">Forgot Password?</a>
-          </div>
+          </div> */}
         </form>
       </div>
       <Toaster />
